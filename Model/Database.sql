@@ -232,3 +232,7 @@ CREATE TABLE reviews (
     CONSTRAINT chk_review_rating
         CHECK (rating BETWEEN 1 AND 5)
 ) ENGINE=InnoDB;
+
+
+ALTER TABLE carts
+MODIFY COLUMN customer_id BIGINT UNSIGNED NOT NULL;
