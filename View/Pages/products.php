@@ -21,12 +21,12 @@ require_once __DIR__ . '/../Includes/header.php';
       <div class="shop-layout">
         <aside class="filter-panel card">
           <h3>Categories</h3>
-          <a class="filter-active" href="products.php"
+          <a class="filter-active" href="../Layout/routing.php?page=products"
             >All products <b>128</b></a
-          ><a href="products.php?category=components">Components <b>42</b></a
-          ><a href="products.php?category=pcs">Gaming PCs <b>16</b></a
-          ><a href="products.php?category=laptops">Laptops <b>22</b></a
-          ><a href="products.php?category=peripherals"
+          ><a href="../Layout/routing.php?page=products&amp;category=components">Components <b>42</b></a
+          ><a href="../Layout/routing.php?page=products&amp;category=pcs">Gaming PCs <b>16</b></a
+          ><a href="../Layout/routing.php?page=products&amp;category=laptops">Laptops <b>22</b></a
+          ><a href="../Layout/routing.php?page=products&amp;category=peripherals"
             >Peripherals <b>31</b></a
           >
           <hr />
@@ -50,66 +50,66 @@ require_once __DIR__ . '/../Includes/header.php';
           </div>
           <div class="grid grid-4 product-grid">
             <article class="card p-card">
-              <a class="p-img" href="product.php"
+              <a class="p-img" href="../Layout/routing.php?page=product"
                 ><span class="badge badge-hot">HOT</span>🎮</a
               >
               <div class="p-body">
                 <span class="p-cat">GRAPHICS CARDS</span
-                ><a class="p-name" href="product.php"
+                ><a class="p-name" href="../Layout/routing.php?page=product"
                   >RTX 5080 16GB Gaming OC</a
                 ><span class="p-stars">★★★★★ <small>4.9 (38)</small></span>
                 <div class="p-foot">
                   <span class="p-price">1,199 <small>JD</small></span
-                  ><a class="btn btn-primary btn-sm" href="login.php"
+                  ><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login"
                     >Add to cart</a
                   >
                 </div>
               </div>
             </article>
             <article class="card p-card">
-              <a class="p-img" href="product.php"
+              <a class="p-img" href="../Layout/routing.php?page=product"
                 ><span class="badge">NEW</span>🧠</a
               >
               <div class="p-body">
                 <span class="p-cat">PROCESSORS</span
-                ><a class="p-name" href="product.php">Ryzen 9 9950X 16-Core</a
+                ><a class="p-name" href="../Layout/routing.php?page=product">Ryzen 9 9950X 16-Core</a
                 ><span class="p-stars">★★★★★ <small>4.8 (26)</small></span>
                 <div class="p-foot">
                   <span class="p-price">549 <small>JD</small></span
-                  ><a class="btn btn-primary btn-sm" href="login.php"
+                  ><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login"
                     >Add to cart</a
                   >
                 </div>
               </div>
             </article>
             <article class="card p-card">
-              <a class="p-img" href="product.php"
+              <a class="p-img" href="../Layout/routing.php?page=product"
                 ><span class="badge badge-ok">IN STOCK</span>⌨️</a
               >
               <div class="p-body">
                 <span class="p-cat">PERIPHERALS</span
-                ><a class="p-name" href="product.php"
+                ><a class="p-name" href="../Layout/routing.php?page=product"
                   >Mechanical RGB Keyboard 75%</a
                 ><span class="p-stars">★★★★★ <small>5.0 (14)</small></span>
                 <div class="p-foot">
                   <span class="p-price">89 <small>JD</small></span
-                  ><a class="btn btn-primary btn-sm" href="login.php"
+                  ><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login"
                     >Add to cart</a
                   >
                 </div>
               </div>
             </article>
             <article class="card p-card">
-              <a class="p-img" href="product.php"
+              <a class="p-img" href="../Layout/routing.php?page=product"
                 ><span class="badge badge-hot">−15%</span>💾</a
               >
               <div class="p-body">
                 <span class="p-cat">STORAGE</span
-                ><a class="p-name" href="product.php">NVMe Gen5 SSD 2TB</a
+                ><a class="p-name" href="../Layout/routing.php?page=product">NVMe Gen5 SSD 2TB</a
                 ><span class="p-stars">★★★★☆ <small>4.6 (19)</small></span>
                 <div class="p-foot">
                   <span class="p-price">169 <small>JD</small></span
-                  ><a class="btn btn-primary btn-sm" href="login.php"
+                  ><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login"
                     >Add to cart</a
                   >
                 </div>
@@ -124,9 +124,10 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
     </main>
     <nav class="page-links" aria-label="Store pages">
-      <a href="home.php">Home</a><a href="products.php">Products</a
-      ><a href="cart.php">Cart</a><a href="checkout.php">Checkout</a
-      ><a href="account.php">My account</a><a href="wishlist.php">Wishlist</a
-      ><a href="login.php">Login</a><a href="register.php">Register</a>
+      <a href="../Layout/routing.php?page=home">Home</a><a href="../Layout/routing.php?page=products">Products</a
+      ><a href="../Layout/routing.php?page=cart">Cart</a><a href="../Layout/routing.php?page=checkout">Checkout</a
+      ><a href="../Layout/routing.php?page=account">My account</a><a href="../Layout/routing.php?page=wishlist">Wishlist</a
+      ><a href="../Layout/routing.php?page=login">Login</a><a href="../Layout/routing.php?page=register">Register</a>
     </nav>
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+

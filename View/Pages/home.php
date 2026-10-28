@@ -25,7 +25,7 @@ require_once __DIR__ . '/../Includes/header.php';
             side-by-side comparison so you always buy the right hardware.
           </p>
           <div class="hero-cta">
-            <a href="products.php" class="btn btn-primary">Shop Now</a>
+            <a href="../Layout/routing.php?page=products" class="btn btn-primary">Shop Now</a>
             <a href="/pc-builder" class="btn btn-ghost">Build Your PC</a>
           </div>
           <div class="hero-stats">
@@ -97,22 +97,22 @@ require_once __DIR__ . '/../Includes/header.php';
         </p>
 
         <div class="grid grid-4" style="margin-top: 40px">
-          <a href="products.php?category=1" class="card cat-card"
+          <a href="../Layout/routing.php?page=products&amp;category=1" class="card cat-card"
             ><div class="cat-icon">🖥️</div>
             <h3>Gaming PCs</h3>
             <p>Prebuilt monsters</p></a
           >
-          <a href="products.php?category=2" class="card cat-card"
+          <a href="../Layout/routing.php?page=products&amp;category=2" class="card cat-card"
             ><div class="cat-icon">⚡</div>
             <h3>Components</h3>
             <p>CPU · GPU · RAM · SSD</p></a
           >
-          <a href="products.php?category=3" class="card cat-card"
+          <a href="../Layout/routing.php?page=products&amp;category=3" class="card cat-card"
             ><div class="cat-icon">💻</div>
             <h3>Laptops</h3>
             <p>Gaming &amp; creator</p></a
           >
-          <a href="products.php?category=4" class="card cat-card"
+          <a href="../Layout/routing.php?page=products&amp;category=4" class="card cat-card"
             ><div class="cat-icon">🎧</div>
             <h3>Peripherals</h3>
             <p>Mice · keyboards · headsets</p></a
@@ -132,63 +132,63 @@ require_once __DIR__ . '/../Includes/header.php';
         <div class="grid grid-4" style="margin-top: 40px">
           <!-- Add to cart as guest → /login -->
           <article class="card p-card">
-            <a href="product.php" class="p-img"
+            <a href="../Layout/routing.php?page=product" class="p-img"
               ><span class="badge badge-hot">Hot</span>🎮</a
             >
             <div class="p-body">
               <span class="p-cat">Graphics Cards</span>
-              <a href="product.php" class="p-name">RTX 5080 16GB Gaming OC</a>
+              <a href="../Layout/routing.php?page=product" class="p-name">RTX 5080 16GB Gaming OC</a>
               <span class="p-stars">★★★★★</span>
               <div class="p-foot">
                 <span class="p-price">1,199 <small>JD</small></span>
-                <a href="login.php" class="btn btn-primary btn-sm">Add to cart</a>
+                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
               </div>
             </div>
           </article>
 
           <article class="card p-card">
-            <a href="product.php" class="p-img"
+            <a href="../Layout/routing.php?page=product" class="p-img"
               ><span class="badge">New</span>🧠</a
             >
             <div class="p-body">
               <span class="p-cat">Processors</span>
-              <a href="product.php" class="p-name">Ryzen 9 9950X 16-Core</a>
+              <a href="../Layout/routing.php?page=product" class="p-name">Ryzen 9 9950X 16-Core</a>
               <span class="p-stars">★★★★☆</span>
               <div class="p-foot">
                 <span class="p-price">549 <small>JD</small></span>
-                <a href="login.php" class="btn btn-primary btn-sm">Add to cart</a>
+                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
               </div>
             </div>
           </article>
 
           <article class="card p-card">
-            <a href="product.php" class="p-img"
+            <a href="../Layout/routing.php?page=product" class="p-img"
               ><span class="badge badge-ok">In stock</span>⌨️</a
             >
             <div class="p-body">
               <span class="p-cat">Peripherals</span>
-              <a href="product.php" class="p-name"
+              <a href="../Layout/routing.php?page=product" class="p-name"
                 >Mechanical RGB Keyboard 75%</a
               >
               <span class="p-stars">★★★★★</span>
               <div class="p-foot">
                 <span class="p-price">89 <small>JD</small></span>
-                <a href="login.php" class="btn btn-primary btn-sm">Add to cart</a>
+                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
               </div>
             </div>
           </article>
 
           <article class="card p-card">
-            <a href="product.php" class="p-img"
+            <a href="../Layout/routing.php?page=product" class="p-img"
               ><span class="badge badge-hot">-15%</span>💾</a
             >
             <div class="p-body">
               <span class="p-cat">Storage</span>
-              <a href="product.php" class="p-name">NVMe Gen5 SSD 2TB</a>
+              <a href="../Layout/routing.php?page=product" class="p-name">NVMe Gen5 SSD 2TB</a>
               <span class="p-stars">★★★★☆</span>
               <div class="p-foot">
                 <span class="p-price">169 <small>JD</small></span>
-                <a href="login.php" class="btn btn-primary btn-sm">Add to cart</a>
+                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
               </div>
             </div>
           </article>
@@ -239,10 +239,11 @@ require_once __DIR__ . '/../Includes/header.php';
         <div class="cta-band">
           <h2>Ready to <span class="text-grad">level up</span>?</h2>
           <p>Create your account and start building your dream rig today.</p>
-          <a href="register.php" class="btn btn-primary">Create account</a>
+          <a href="../Layout/routing.php?page=register" class="btn btn-primary">Create account</a>
         </div>
       </div>
     </section>
 
     <!-- ================= FOOTER ================= -->
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+

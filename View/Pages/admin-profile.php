@@ -15,7 +15,7 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
         <div class="admin-user">
           <span class="live-dot"></span><span>System live</span
-          ><a class="admin-avatar" href="admin-profile.php">AD</a>
+          ><a class="admin-avatar" href="../Layout/routing.php?page=admin-profile">AD</a>
         </div>
       </header>
       <div class="admin-content">
@@ -78,3 +78,4 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
     </main>
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+
