@@ -15,7 +15,7 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
         <div class="admin-user">
           <span class="live-dot"></span><span>System live</span
-          ><a class="admin-avatar" href="admin-profile.php">AD</a>
+          ><a class="admin-avatar" href="../Layout/routing.php?page=admin-profile">AD</a>
         </div>
       </header>
       <div class="admin-content">
@@ -101,7 +101,7 @@ require_once __DIR__ . '/../Includes/header.php';
                 <h3>Order status</h3>
                 <p class="muted">1,284 total orders</p>
               </div>
-              <a href="admin-orders.php">View all →</a>
+              <a href="../Layout/routing.php?page=admin-orders">View all →</a>
             </div>
             <div class="donut-wrap">
               <div class="donut">
@@ -121,7 +121,7 @@ require_once __DIR__ . '/../Includes/header.php';
               <h3>Latest orders</h3>
               <p class="muted">Recent customer activity</p>
             </div>
-            <a href="admin-orders.php">All orders →</a>
+            <a href="../Layout/routing.php?page=admin-orders">All orders →</a>
           </div>
           <div class="table-wrap">
             <table>
@@ -163,3 +163,4 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
     </main>
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+

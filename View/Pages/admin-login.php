@@ -7,7 +7,7 @@ $showStoreFooter = false;
 require_once __DIR__ . '/../Includes/header.php';
 ?>
     <main class="auth-shell admin-auth">
-      <a class="logo" href="home.php"
+      <a class="logo" href="../Layout/routing.php?page=home"
         ><span class="logo-mark"></span>NEXORA
         <span class="admin-word">CONTROL</span></a
       >
@@ -30,11 +30,12 @@ require_once __DIR__ . '/../Includes/header.php';
               type="password"
               placeholder="••••••••"
               required /></label
-          ><a class="btn btn-primary full" href="admin-overview.php"
+          ><a class="btn btn-primary full" href="../Layout/routing.php?page=admin-overview"
             >Access dashboard</a
           >
         </form>
-        <a class="back-link" href="home.php">← Return to storefront</a>
+        <a class="back-link" href="../Layout/routing.php?page=home">← Return to storefront</a>
       </section>
     </main>
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+

@@ -12,29 +12,29 @@ require_once __DIR__ . '/../Includes/header.php';
       <h1 class="page-title">Your <span class="text-grad">wishlist.</span></h1>
       <div class="grid grid-4 product-grid">
         <article class="card p-card">
-          <a class="p-img" href="product.php">🎮</a>
+          <a class="p-img" href="../Layout/routing.php?page=product">🎮</a>
           <div class="p-body">
             <span class="p-cat">GRAPHICS CARDS</span
-            ><a class="p-name" href="product.php">RTX 5080 16GB Gaming OC</a
+            ><a class="p-name" href="../Layout/routing.php?page=product">RTX 5080 16GB Gaming OC</a
             ><span class="p-stars">★★★★★</span>
             <div class="p-foot">
               <span class="p-price">1,199 <small>JD</small></span
-              ><a class="btn btn-primary btn-sm" href="login.php"
+              ><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login"
                 >Add to cart</a
               >
             </div>
           </div>
         </article>
         <article class="card p-card">
-          <a class="p-img" href="product.php">⌨️</a>
+          <a class="p-img" href="../Layout/routing.php?page=product">⌨️</a>
           <div class="p-body">
             <span class="p-cat">PERIPHERALS</span
-            ><a class="p-name" href="product.php"
+            ><a class="p-name" href="../Layout/routing.php?page=product"
               >Mechanical RGB Keyboard 75%</a
             ><span class="p-stars">★★★★★</span>
             <div class="p-foot">
               <span class="p-price">89 <small>JD</small></span
-              ><a class="btn btn-primary btn-sm" href="login.php"
+              ><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login"
                 >Add to cart</a
               >
             </div>
@@ -43,9 +43,10 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
     </main>
     <nav class="page-links" aria-label="Store pages">
-      <a href="home.php">Home</a><a href="products.php">Products</a
-      ><a href="cart.php">Cart</a><a href="checkout.php">Checkout</a
-      ><a href="account.php">My account</a><a href="wishlist.php">Wishlist</a
-      ><a href="login.php">Login</a><a href="register.php">Register</a>
+      <a href="../Layout/routing.php?page=home">Home</a><a href="../Layout/routing.php?page=products">Products</a
+      ><a href="../Layout/routing.php?page=cart">Cart</a><a href="../Layout/routing.php?page=checkout">Checkout</a
+      ><a href="../Layout/routing.php?page=account">My account</a><a href="../Layout/routing.php?page=wishlist">Wishlist</a
+      ><a href="../Layout/routing.php?page=login">Login</a><a href="../Layout/routing.php?page=register">Register</a>
     </nav>
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+
