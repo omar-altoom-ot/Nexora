@@ -12,3 +12,55 @@
 
 .page-links{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:22px 4%;border-top:1px solid var(--line);background:var(--bg-2)}.page-links a{padding:9px 13px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:.76rem;transition:color .2s,border-color .2s}.page-links a:hover{color:var(--cyan);border-color:var(--cyan)}
 
+/* ===========================
+   Create Product Form
+=========================== */
+
+.product-create-form {
+    width: 100%;
+}
+
+/* All form inputs */
+.product-create-form .field > .input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Category Dropdown */
+.product-create-form select.input {
+    width: 100%;
+    padding: 14px 16px;
+}
+
+/* Price and Stock in two columns */
+.product-create-form .product-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+/* Form Buttons */
+.product-create-form .product-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+/* Cancel Link */
+.product-create-form .product-form-cancel {
+    color: #c4b5fd;
+    text-decoration: none;
+}
+
+.product-create-form .product-form-cancel:hover {
+    color: #ffffff;
+}
+
+/* Responsive Form */
+@media (max-width: 600px) {
+    .product-create-form .product-form-row {
+        grid-template-columns: 1fr;
+    }
+}
