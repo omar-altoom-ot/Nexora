@@ -16,7 +16,8 @@ require_once __DIR__ . '/../Includes/header.php';
           <h3>Alex Morgan</h3>
           <small>MEMBER SINCE 2026</small
           ><a class="active" href="../Layout/routing.php?page=account">Profile overview</a
-          ><a href="#orders">My orders</a><a href="../Layout/routing.php?page=wishlist">Wishlist</a
+          >      <a href="../Layout/routing.php?page=my_orders">My orders</a>
+<a href="../Layout/routing.php?page=wishlist">Wishlist</a
           ><a href="#settings">Account settings</a>
         </aside>
         <section>
