@@ -11,13 +11,18 @@ require_once __DIR__ . '/../../Model/ProductRepository.php';
 require_once __DIR__ . '/../../Controllers/ProductController.php';
 require_once __DIR__ . '/../../Model/CategoryRepository.php';
 
+
 $db = new Db();
+
 $repository = new ProductRepository($db);
-$controller = new ProductController($repository);
+$categoryRepository = new CategoryRepository($db);
+
+$controller = new ProductController(
+    $repository,
+    $categoryRepository
+);
 
 $products = $controller->index();
-
-$categoryRepository = new CategoryRepository($db);
 $categories = $categoryRepository->findAll();
 
 $currentPage = 'admin-products';
