@@ -23,6 +23,8 @@ $routes = [
     'products' => __DIR__ . '/../Pages/products.php',
     'register' => __DIR__ . '/../Pages/register.php',
     'wishlist' => __DIR__ . '/../Pages/wishlist.php',
+    'admin-order-details' => __DIR__ . '/../Pages/admin-order-details.php',
+    'my_orders' => __DIR__ . '/../Pages/my_orders.php',
 ];
 
 $page = $_GET['page'] ?? 'home';
