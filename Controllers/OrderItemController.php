@@ -1,7 +1,5 @@
 <?php
-
 require_once __DIR__ . '/../Model/OrderItem.php';
-require_once __DIR__ . '/../Config/DBconnection.php';
 
 class OrderItemController
 {
@@ -12,60 +10,31 @@ class OrderItemController
         $this->db = $db;
     }
 
-    public function create(OrderItem $model): int
+    // READ: Get items for a specific order
+    public function getByOrderId(int $orderId): array
     {
-        $result = $this->db->run_query(
+        $sql = "
+            SELECT oi.*, p.name AS product_name
+            FROM order_items oi
+            LEFT JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = ?
+        ";
+        $results = $this->db->run_query($sql, [$orderId])->fetchAll();
+        return array_map(fn($row) => new OrderItem($row), $results);
+    }
+
+    // CREATE: Add an item to an order
+    public function create(int $orderId, ?int $productId, int $quantity, float $unitPrice): int
+    {
+        $this->db->run_query(
             'INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (:order_id, :product_id, :quantity, :unit_price)',
             [
-                'order_id' => $model->order_id,
-                'product_id' => $model->product_id,
-                'quantity' => $model->quantity,
-                'unit_price' => $model->unit_price,
+                'order_id' => $orderId,
+                'product_id' => $productId,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
             ]
         );
-
         return (int) $this->db->run_query('SELECT LAST_INSERT_ID() AS id')->fetch()['id'];
     }
-
-    public function findById(int $id): ?array
-    {
-        $result = $this->db->run_query(
-            'SELECT id, order_id, product_id, quantity, unit_price FROM order_items WHERE id = :id LIMIT 1',
-            ['id' => $id]
-        )->fetch();
-
-        return $result ?: null;
-    }
-
-    public function update(OrderItem $model): bool
-    {
-        $result = $this->db->run_query(
-            'UPDATE order_items SET
-                 order_id = :order_id,
-                 product_id = :product_id,
-                 quantity = :quantity,
-                 unit_price = :unit_price
-             WHERE id = :id',
-            [
-                'id' => $model->id,
-                'order_id' => $model->order_id,
-                'product_id' => $model->product_id,
-                'quantity' => $model->quantity,
-                'unit_price' => $model->unit_price,
-            ]
-        );
-
-        return $result->rowCount() > 0;
-    }
-
-    public function delete(int $id): bool
-    {
-        $result = $this->db->run_query(
-            'DELETE FROM order_items WHERE id = :id',
-            ['id' => $id]
-        );
-
-        return $result->rowCount() > 0;
-    }
 }
-
