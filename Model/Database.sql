@@ -193,6 +193,8 @@ CREATE TABLE wishlist_items (
 
 	PRIMARY KEY (wishlist_id, product_id),
 
+
+
 	CONSTRAINT fk_wishlist_items_wishlist
 		FOREIGN KEY (wishlist_id)
 		REFERENCES wishlists(id)
@@ -232,3 +234,21 @@ CREATE TABLE reviews (
 	CONSTRAINT chk_review_rating
 		CHECK (rating BETWEEN 1 AND 5)
 ) ENGINE=InnoDB;
+
+
+use nexora;
+ALTER TABLE customers
+    ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE orders
+    ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE reviews
+    ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE products
+    ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE categories
+    ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+	
