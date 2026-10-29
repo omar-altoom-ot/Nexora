@@ -1,4 +1,11 @@
+
 <?php
+// NEXORA Routing
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $routes = [
     'account' => __DIR__ . '/../Pages/account.php',
     'admin-categories' => __DIR__ . '/../Pages/admin-categories.php',
@@ -20,10 +27,29 @@ $routes = [
 ];
 
 $page = $_GET['page'] ?? 'home';
+
 if (!is_string($page) || !isset($routes[$page])) {
     http_response_code(404);
     exit('Page not found.');
 }
 
-require $routes[$page];
+// Check whether the requested page belongs to Admin.
+$isProtectedAdminPage =
+    str_starts_with($page, 'admin-')
+    && $page !== 'admin-login';
 
+if ($isProtectedAdminPage) {
+
+    $isLoggedInAdmin =
+        isset($_SESSION['admin_id'])
+        && ($_SESSION['user_role'] ?? null) === 'admin';
+
+    if (!$isLoggedInAdmin) {
+        header(
+            'Location: /Nexora/View/Layout/routing.php?page=admin-login'
+        );
+        exit;
+    }
+}
+
+require $routes[$page];
