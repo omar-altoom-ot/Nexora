@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_role'] = 'customer';
 
                 header(
-                    'Location: /Nexora/View/Layout/routing.php?page=account'
+                    'Location: routing.php?page=account'
                 );
                 exit;
             }
