@@ -28,6 +28,7 @@ class ProductController
         $price = $input['price'] ?? null;
 
         if (
+            
             !is_string($price) ||
             !preg_match('/\A[0-9]{1,8}(\.[0-9]{1,2})?\z/', $price) ||
             (float) $price <= 0
