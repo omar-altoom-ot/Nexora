@@ -33,9 +33,9 @@ if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
         Products
       </a>
 
-      <a href="#">PC Builder</a>
-      <a class="<?= $currentPage === 'compare' ? 'active' : '' ?>"
-         href="../Layout/routing.php?page=compare">Compare</a>
+      <!-- <a href="#">PC Builder</a> -->
+	   <a class="<?= $currentPage === 'builder' ? 'active' : '' ?>" href="../Layout/routing.php?page=builder">PC Builder</a>
+      <a href="#">Compare</a>
     </nav>
 
     <div class="nav-actions">
