@@ -19,7 +19,7 @@ $isInWishlist = false;
 $actionMessage = $_SESSION['product_action_flash'] ?? '';
 unset($_SESSION['product_action_flash']);
 $actionError = '';
-$actionQuantity = 1;
+$actionQuantity = 0;
 $reviewMessage = $_SESSION['product_review_flash'] ?? '';
 unset($_SESSION['product_review_flash']);
 $customerLoggedIn = isset($_SESSION['customer_id']) && ($_SESSION['user_role'] ?? null) === 'customer';
@@ -201,6 +201,11 @@ $imageUrl = static function (string $image): string {
 $averageRating = (float) ($rating['average_rating'] ?? 0);
 $reviewCount = (int) ($rating['review_count'] ?? 0);
 $stock = (int) ($product['stock_quantity'] ?? 0);
+$cartQuantity = $product ? (int) ($_SESSION['cart_items'][(int) $product['id']] ?? 0) : 0;
+$availableToAdd = max(0, $stock - $cartQuantity);
+$quantityValue = $actionQuantity > 0
+  ? min($actionQuantity, max(1, $availableToAdd))
+  : 1;
 $stars = $reviewCount > 0 ? (int) round($averageRating) : 0;
 require_once __DIR__ . '/../Includes/header.php';
 ?>
@@ -231,8 +236,8 @@ require_once __DIR__ . '/../Includes/header.php';
         <div class="purchase-row" id="purchase">
           <form method="post" action="../Layout/routing.php?page=product&amp;id=<?= (int) $product['id'] ?>#purchase" class="product-cart-form">
               <input type="hidden" name="action" value="add_to_cart"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['product_action_csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
-              <div class="quantity product-quantity"><button type="button" data-quantity-step="-1" aria-label="Decrease quantity" <?= $stock < 1 ? 'disabled' : '' ?>>−</button><input type="number" name="quantity" value="<?= min(max(1, $actionQuantity), max(1, $stock)) ?>" min="1" max="<?= max(1, $stock) ?>" inputmode="numeric" aria-label="Quantity" <?= $stock < 1 ? 'disabled' : '' ?>><button type="button" data-quantity-step="1" aria-label="Increase quantity" <?= $stock < 1 ? 'disabled' : '' ?>>+</button></div>
-              <button class="btn btn-primary" type="submit" <?= $stock < 1 ? 'disabled' : '' ?>><?= $stock > 0 ? 'Add to cart' : 'Out of stock' ?></button>
+              <div class="quantity product-quantity"><button type="button" data-quantity-step="-1" aria-label="Decrease quantity">−</button><input type="number" name="quantity" value="<?= $quantityValue ?>" min="1" max="<?= max(1, $availableToAdd) ?>" inputmode="numeric" aria-label="Quantity" <?= $availableToAdd < 1 ? 'disabled' : '' ?>><button type="button" data-quantity-step="1" aria-label="Increase quantity">+</button></div>
+              <button class="btn btn-primary" type="submit" <?= $availableToAdd < 1 ? 'disabled' : '' ?>><?= $stock < 1 ? 'Out of stock' : ($availableToAdd < 1 ? 'Maximum in cart' : 'Add to cart') ?></button>
           </form>
           <?php if ($customerLoggedIn): ?><form method="post" action="../Layout/routing.php?page=product&amp;id=<?= (int) $product['id'] ?>#purchase" class="product-wishlist-form"><input type="hidden" name="action" value="<?= $isInWishlist ? 'remove_from_wishlist' : 'add_to_wishlist' ?>"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['product_action_csrf_token'], ENT_QUOTES, 'UTF-8') ?>"><button class="btn btn-ghost btn-sm product-wishlist-button" type="submit"><?= $isInWishlist ? 'Remove from wishlist' : 'Add to wishlist' ?></button></form>
           <?php else: ?><a class="btn btn-ghost btn-sm product-wishlist-button" href="../Layout/routing.php?page=login">Sign in to add to wishlist</a><?php endif; ?>
@@ -240,11 +245,11 @@ require_once __DIR__ . '/../Includes/header.php';
         <?php if ($actionMessage !== ''): ?><p class="status status-green product-action-notice" role="status"><?= htmlspecialchars($actionMessage, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
         <?php if ($actionError !== ''): ?><p class="status status-red product-action-notice" role="alert"><?= htmlspecialchars($actionError, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
         <div class="compat"><span>✦</span><div><b>Need help choosing?</b><p>Explore more hardware and find the right fit for your setup.</p><a href="../Layout/routing.php?page=products">Browse all products →</a></div></div>
-        <div class="tabs"><a class="tab-active" href="#description">Description</a><a href="#reviews">Reviews (<?= $reviewCount ?>)</a></div>
-        <div id="description" class="description"><h3><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h3><p><?= nl2br(htmlspecialchars(trim((string) ($product['description'] ?? '')) !== '' ? $product['description'] : 'Product description is not available yet.', ENT_QUOTES, 'UTF-8')) ?></p></div>
+        <div class="tabs" role="tablist" aria-label="Product information"><a class="tab-active" href="#description" data-product-tab="description" role="tab" aria-controls="description" aria-selected="true">Description</a><a href="#reviews" data-product-tab="reviews" role="tab" aria-controls="reviews" aria-selected="false">Reviews (<?= $reviewCount ?>)</a></div>
+        <div id="description" class="description" role="tabpanel"><h3><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h3><p><?= nl2br(htmlspecialchars(trim((string) ($product['description'] ?? '')) !== '' ? $product['description'] : 'Product description is not available yet.', ENT_QUOTES, 'UTF-8')) ?></p></div>
       </section>
     </div>
-    <section id="reviews" class="card panel product-reviews">
+    <section id="reviews" class="card panel product-reviews" role="tabpanel" hidden>
       <div class="row-between"><div class="review-heading-main"><h2>Customer reviews</h2><?php if ($reviewMessage !== ''): ?><p class="status status-green" role="status"><?= htmlspecialchars($reviewMessage, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?></div><div class="review-header-actions"><span class="muted"><?= $reviewCount ?> total</span><?php if ($customerLoggedIn && !$myReview && $reviewError === ''): ?><button class="btn btn-primary btn-sm review-open-button" type="button" data-review-open>Add review</button><?php endif; ?></div></div>
       <?php if (!$customerLoggedIn): ?><p class="muted">Sign in to rate and review this product.</p><a class="btn btn-primary btn-sm" href="../Layout/routing.php?page=login">Sign in</a><?php endif; ?>
       <div class="review-form-panel" id="review-form-panel" <?= $reviewError === '' ? 'hidden' : '' ?>>
@@ -267,17 +272,66 @@ require_once __DIR__ . '/../Includes/header.php';
   <?php endif; ?>
 </main>
 <style>
-.product-visual{overflow:hidden}.product-main-image{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:26px;z-index:0}.product-visual>.badge,.product-visual>.visual-caption{z-index:1}.product-image-placeholder{font-size:7rem;color:var(--cyan);text-shadow:0 0 42px rgba(34,211,238,.25)}.product-thumb{width:70px;height:65px;padding:5px;overflow:hidden}.product-thumb img{width:100%;height:100%;object-fit:cover;border-radius:5px}.product-thumb.active{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.2)}.product-description-lead{line-height:1.8;white-space:normal}.stock-out{color:#fb7185}.compat a{display:inline-block;margin-top:7px;color:var(--cyan);font-size:.78rem}.product-reviews{margin-top:35px}.product-reviews h2{font:700 1.1rem var(--font-head)}.review-list{display:grid;gap:12px}.product-review{padding:16px 0;border-top:1px solid var(--line)}.review-heading{display:flex;justify-content:space-between;gap:12px}.review-heading b{font-size:.85rem}.review-owner-actions{display:flex;align-items:center;gap:8px}.review-owner-actions form{margin:0}.review-delete-button{color:#fb7185}.review-delete-button:hover{border-color:#fb7185;color:#fff}.rating-stars{color:var(--amber);letter-spacing:2px}.product-review p{color:var(--muted);font-size:.85rem;line-height:1.7;margin:8px 0 0}.review-form-panel{padding:18px;margin:18px 0 10px;border:1px solid var(--line);border-radius:12px;background:rgba(139,92,246,.06)}.review-form-panel h3{font:700 .95rem var(--font-head);margin:0 0 14px}.review-form{display:grid;gap:9px;max-width:620px}.review-form label{margin-top:5px;font-size:.78rem;color:var(--muted)}.review-form select{max-width:220px}.review-form textarea{resize:vertical;min-height:105px}.review-form-actions{display:flex;gap:8px;margin-top:6px}.product-cart-form{display:flex;align-items:center;gap:10px;margin:0}.product-quantity{gap:7px;padding:3px}.product-quantity button{width:32px;height:32px;padding:0;display:grid;place-items:center}.product-quantity input{width:38px;padding:4px 0;border:0;background:transparent;color:var(--text);text-align:center;font:600 .9rem var(--font-body);appearance:textfield}.product-quantity input::-webkit-inner-spin-button,.product-quantity input::-webkit-outer-spin-button{appearance:none;margin:0}.product-quantity button:disabled,.product-cart-form button:disabled{opacity:.5;cursor:not-allowed}.purchase-row{flex-wrap:wrap}.product-wishlist-form{margin:0}.product-wishlist-button{white-space:nowrap}.product-action-notice{margin:10px 0}.review-heading-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.review-heading-main h2{margin:0}.review-heading-main .status{margin:0}.review-header-actions{display:flex;align-items:center;gap:16px}.review-open-button{margin:0;white-space:nowrap}.review-form-panel[hidden]{display:none}
+.product-visual{overflow:hidden}.product-main-image{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:26px;z-index:0}.product-visual>.badge,.product-visual>.visual-caption{z-index:1}.product-image-placeholder{font-size:7rem;color:var(--cyan);text-shadow:0 0 42px rgba(34,211,238,.25)}.product-thumb{width:70px;height:65px;padding:5px;overflow:hidden}.product-thumb img{width:100%;height:100%;object-fit:cover;border-radius:5px}.product-thumb.active{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.2)}.product-description-lead{line-height:1.8;white-space:normal}.stock-out{color:#fb7185}.compat a{display:inline-block;margin-top:7px;color:var(--cyan);font-size:.78rem}.product-reviews{margin-top:35px}.product-reviews h2{font:700 1.1rem var(--font-head)}.review-list{display:grid;gap:12px}.product-review{padding:16px 0;border-top:1px solid var(--line)}.review-heading{display:flex;justify-content:space-between;gap:12px}.review-heading b{font-size:.85rem}.review-owner-actions{display:flex;align-items:center;gap:8px}.review-owner-actions form{margin:0}.review-delete-button{color:#fb7185}.review-delete-button:hover{border-color:#fb7185;color:#fff}.rating-stars{color:var(--amber);letter-spacing:2px}.product-review p{color:var(--muted);font-size:.85rem;line-height:1.7;margin:8px 0 0}.review-form-panel{padding:18px;margin:18px 0 10px;border:1px solid var(--line);border-radius:12px;background:rgba(139,92,246,.06)}.review-form-panel h3{font:700 .95rem var(--font-head);margin:0 0 14px}.review-form{display:grid;gap:9px;max-width:620px}.review-form label{margin-top:5px;font-size:.78rem;color:var(--muted)}.review-form select{max-width:220px}.review-form textarea{resize:vertical;min-height:105px}.review-form-actions{display:flex;gap:8px;margin-top:6px}.product-cart-form{display:flex;align-items:center;gap:10px;margin:0}.product-quantity{gap:7px;padding:3px}.product-quantity button{width:32px;height:32px;padding:0;display:grid;place-items:center}.product-quantity input{width:38px;padding:4px 0;border:0;background:transparent;color:var(--text);text-align:center;font:600 .9rem var(--font-body);appearance:textfield}.product-quantity input::-webkit-inner-spin-button,.product-quantity input::-webkit-outer-spin-button{appearance:none;margin:0}.product-quantity button:disabled,.product-cart-form button:disabled{opacity:.5;cursor:not-allowed}.purchase-row{flex-wrap:wrap}.product-wishlist-form{margin:0}.product-cart-form>.btn,.product-wishlist-button{height:68px;min-height:68px;box-sizing:border-box}.product-wishlist-button{white-space:nowrap;padding:14px 22px;font-size:.72rem}.product-action-notice{margin:10px 0}.review-heading-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.review-heading-main h2{margin:0}.review-heading-main .status{margin:0}.review-header-actions{display:flex;align-items:center;gap:16px}.review-open-button{margin:0;white-space:nowrap}.review-form-panel[hidden]{display:none}
+.product-visual{overflow:hidden}.product-main-image{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:26px;z-index:0}.product-visual>.badge,.product-visual>.visual-caption{z-index:1}.product-image-placeholder{font-size:7rem;color:var(--cyan);text-shadow:0 0 42px rgba(34,211,238,.25)}.product-thumb{width:70px;height:65px;padding:5px;overflow:hidden}.product-thumb img{width:100%;height:100%;object-fit:cover;border-radius:5px}.product-thumb.active{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.2)}.product-description-lead{line-height:1.8;white-space:normal}.stock-out{color:#fb7185}.compat a{display:inline-block;margin-top:7px;color:var(--cyan);font-size:.78rem}.product-reviews{margin-top:35px}.product-reviews[hidden]{display:none!important}.product-reviews h2{font:700 1.1rem var(--font-head)}.review-list{display:grid;gap:12px}.product-review{padding:16px 0;border-top:1px solid var(--line)}.review-heading{display:flex;justify-content:space-between;gap:12px}.review-heading b{font-size:.85rem}.review-owner-actions{display:flex;align-items:center;gap:8px}.review-owner-actions form{margin:0}.review-delete-button{color:#fb7185}.review-delete-button:hover{border-color:#fb7185;color:#fff}.rating-stars{color:var(--amber);letter-spacing:2px}.product-review p{color:var(--muted);font-size:.85rem;line-height:1.7;margin:8px 0 0}.review-form-panel{padding:18px;margin:18px 0 10px;border:1px solid var(--line);border-radius:12px;background:rgba(139,92,246,.06)}.review-form-panel h3{font:700 .95rem var(--font-head);margin:0 0 14px}.review-form{display:grid;gap:9px;max-width:620px}.review-form label{margin-top:5px;font-size:.78rem;color:var(--muted)}.review-form select{max-width:220px}.review-form textarea{resize:vertical;min-height:105px}.review-form-actions{display:flex;gap:8px;margin-top:6px}.product-cart-form{display:flex;align-items:center;gap:10px;margin:0}.product-quantity{gap:7px;padding:3px}.product-quantity button{width:32px;height:32px;padding:0;display:grid;place-items:center}.product-quantity input{width:38px;padding:4px 0;border:0;background:transparent;color:var(--text);text-align:center;font:600 .9rem var(--font-body);appearance:textfield}.product-quantity input::-webkit-inner-spin-button,.product-quantity input::-webkit-outer-spin-button{appearance:none;margin:0}.product-quantity button:disabled,.product-cart-form button:disabled{opacity:.5;cursor:not-allowed}.purchase-row{flex-wrap:wrap}.product-wishlist-form{margin:0}.product-wishlist-button{white-space:nowrap}.product-action-notice{margin:10px 0}.review-heading-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.review-heading-main h2{margin:0}.review-heading-main .status{margin:0}.review-header-actions{display:flex;align-items:center;gap:16px}.review-open-button{margin:0;white-space:nowrap}.review-form-panel[hidden]{display:none}
+.tab-panel-enter{animation:tab-panel-enter .24s ease-out both}@keyframes tab-panel-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.tab-panel-enter{animation:none}}
 </style>
 <script>
+var productTabs = document.querySelectorAll('[data-product-tab]');
+var descriptionPanel = document.getElementById('description');
+var reviewsPanel = document.getElementById('reviews');
+function showProductTab(tabName, scrollToPanel) {
+  var showReviews = tabName === 'reviews';
+  reviewsPanel.hidden = !showReviews;
+  descriptionPanel.hidden = showReviews;
+  var activePanel = showReviews ? reviewsPanel : descriptionPanel;
+  activePanel.classList.remove('tab-panel-enter');
+  void activePanel.offsetWidth;
+  activePanel.classList.add('tab-panel-enter');
+  productTabs.forEach(function (tab) {
+    var active = tab.dataset.productTab === tabName;
+    tab.classList.toggle('tab-active', active);
+    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  if (scrollToPanel) {
+    (showReviews ? reviewsPanel : descriptionPanel).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+productTabs.forEach(function (tab) {
+  tab.addEventListener('click', function (event) {
+    event.preventDefault();
+    var tabName = tab.dataset.productTab;
+    showProductTab(tabName, true);
+    history.replaceState(null, '', '#' + tabName);
+  });
+});
+showProductTab(window.location.hash === '#reviews' ? 'reviews' : 'description', false);
 document.querySelectorAll('[data-quantity-step]').forEach(function (button) {
+  var input = button.closest('.product-quantity').querySelector('input[name="quantity"]');
+  var controls = button.closest('.product-quantity').querySelectorAll('[data-quantity-step]');
+  function updateQuantityButtons() {
+    var quantity = parseInt(input.value || '1', 10);
+    var min = parseInt(input.min || '1', 10);
+    var max = parseInt(input.max || '1', 10);
+    controls.forEach(function (control) {
+      var step = parseInt(control.dataset.quantityStep, 10);
+      control.disabled = input.disabled || (step < 0 ? quantity <= min : quantity >= max);
+    });
+  }
   button.addEventListener('click', function () {
-    var input = button.closest('.product-quantity').querySelector('input[name="quantity"]');
     var min = parseInt(input.min || '1', 10);
     var max = parseInt(input.max || '1', 10);
     var next = parseInt(input.value || '1', 10) + parseInt(button.dataset.quantityStep, 10);
     input.value = Math.min(max, Math.max(min, next));
+    updateQuantityButtons();
   });
+  input.addEventListener('input', function () {
+    var min = parseInt(input.min || '1', 10);
+    var max = parseInt(input.max || '1', 10);
+    input.value = Math.min(max, Math.max(min, parseInt(input.value || '1', 10)));
+    updateQuantityButtons();
+  });
+  updateQuantityButtons();
 });document.querySelectorAll('[data-review-open]').forEach(function (button) {
   button.addEventListener('click', function () {
     var panel = document.getElementById('review-form-panel');
