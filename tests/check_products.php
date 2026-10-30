@@ -132,3 +132,19 @@ var_dump($controller->isValidCsrfToken(
     null,
     $testToken
 ));
+
+$existingProducts = $controller->index();
+
+if ($existingProducts !== []) {
+    $existingId = (int) $existingProducts[0]['id'];
+
+    $found = $productRepository->findById($existingId);
+
+    echo "Existing product found: ";
+    var_dump($found !== null);
+}
+
+$missing = $productRepository->findById(0);
+
+echo "Missing product returns null: ";
+var_dump($missing === null);
