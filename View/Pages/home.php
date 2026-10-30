@@ -42,6 +42,12 @@ require_once __DIR__ . '/../Includes/header.php';
           <div class="ring r2"></div>
           <div class="rig-floor"></div>
 
+          <div class="orbiting-components" aria-hidden="true">
+            <div class="orbit-item orbit-cpu"><img src="../../Assets/Images/home-components/cpu.png" alt="" loading="lazy" /></div>
+            <div class="orbit-item orbit-ram"><img src="../../Assets/Images/home-components/ram.png" alt="" loading="lazy" /></div>
+            <div class="orbit-item orbit-board"><img src="../../Assets/Images/home-components/motherboard.png" alt="" loading="lazy" /></div>
+          </div>
+
           <div class="pc">
             <div class="pc-body"></div>
             <div class="pc-glass">
@@ -63,6 +69,30 @@ require_once __DIR__ . '/../Includes/header.php';
             </div>
           </div>
 
+          <!-- Orbiting parts — the ring spins, each part counter-spins to stay upright -->
+          <div class="orbit-ring" aria-hidden="true">
+            <div class="floating-part part-cpu">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/cpu.png" alt=""></div>
+              </div>
+            </div>
+            <div class="floating-part part-ram">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/RAM.png" alt=""></div>
+              </div>
+            </div>
+            <div class="floating-part part-board">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/motherboard.png" alt=""></div>
+              </div>
+            </div>
+            <div class="floating-part part-ssd">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/SSD.png" alt=""></div>
+              </div>
+            </div>
+          </div>
+
           <div class="chip c1"><small>FPS</small><b>240+</b></div>
           <div class="chip c2"><small>GPU temp</small><b>58°C</b></div>
           <div class="chip c3"><small>Compatibility</small><b>100% ✓</b></div>
@@ -73,6 +103,80 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </div>
     </section>
+
+    <script>
+    (function () {
+      function initOrbit() {
+        var rig = document.querySelector('.rig');
+        if (!rig) return;
+        var ring = rig.querySelector('.orbit-ring');
+        if (!ring) return;
+
+        // Force the containing block + container to behave correctly
+        // no matter what other CSS on the page says.
+        rig.style.setProperty('position', 'relative', 'important');
+        ring.style.setProperty('position', 'absolute', 'important');
+        ring.style.setProperty('top', '0', 'important');
+        ring.style.setProperty('left', '0', 'important');
+        ring.style.setProperty('width', '100%', 'important');
+        ring.style.setProperty('height', '100%', 'important');
+        ring.style.setProperty('margin', '0', 'important');
+        ring.style.setProperty('pointer-events', 'none', 'important');
+
+        var parts = [
+          { el: ring.querySelector('.part-cpu'), angle: -90 },
+          { el: ring.querySelector('.part-ram'), angle: 0 },
+          { el: ring.querySelector('.part-board'), angle: 90 },
+          { el: ring.querySelector('.part-ssd'), angle: 180 }
+        ].filter(function (p) { return !!p.el; });
+
+        parts.forEach(function (p) {
+          p.el.style.setProperty('position', 'absolute', 'important');
+          p.el.style.setProperty('top', '0', 'important');
+          p.el.style.setProperty('left', '0', 'important');
+          p.el.style.setProperty('margin', '0', 'important');
+        });
+
+        var DURATION = 20000; // ms for one full revolution
+        var HALF = 46;        // half the part's 92px box, to center it
+        var start = performance.now();
+
+        function radiusFor(w) {
+          return Math.max(120, Math.min(w * 0.42, 260));
+        }
+
+        function tick(now) {
+          var w = rig.clientWidth;
+          var h = rig.clientHeight;
+          if (w && h) {
+            var r = radiusFor(w);
+            var cx = w / 2;
+            var cy = h / 2;
+            var revolutions = (now - start) / DURATION;
+            parts.forEach(function (p) {
+              var deg = p.angle + revolutions * 360;
+              var rad = (deg * Math.PI) / 180;
+              var x = cx + r * Math.cos(rad) - HALF;
+              var y = cy + r * Math.sin(rad) - HALF;
+              p.el.style.setProperty(
+                'transform',
+                'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)',
+                'important'
+              );
+            });
+          }
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initOrbit);
+      } else {
+        initOrbit();
+      }
+    })();
+    </script>
 
     <!-- ================= BRANDS MARQUEE ================= -->
     <div class="marquee" aria-hidden="true">
@@ -246,4 +350,3 @@ require_once __DIR__ . '/../Includes/header.php';
 
     <!-- ================= FOOTER ================= -->
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
-
