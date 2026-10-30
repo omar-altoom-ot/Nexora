@@ -102,5 +102,23 @@ if (in_array($page, $protectedCustomerPages, true)) {
     }
 }
 
+
+if ($page === 'products') {
+
+    require_once __DIR__ .
+        '/../../Controllers/CatalogController.php';
+
+    $db = new Db();
+
+    $catalogRepository = new CatalogRepository($db);
+
+    $catalogController = new CatalogController(
+        $catalogRepository
+    );
+
+    $catalogData = $catalogController->index($_GET);
+}
+
+
 // Load requested page
 require $routes[$page];

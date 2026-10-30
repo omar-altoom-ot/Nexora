@@ -1,8 +1,10 @@
 <?php
-class Db {
+class Db
+{
     private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = new PDO(
             "mysql:host=localhost;dbname=nexora;charset=utf8mb4",
             "root",
@@ -11,11 +13,35 @@ class Db {
         );
     }
 
-    public function run_query(string $query, array $param = []) {
+    public function run_query(string $query, array $param = [])
+    {
         $stmt = $this->db->prepare($query);
         $stmt->execute($param);
         return $stmt;
     }
 
+
+    // Database Transaction MOTASEM
+    public function beginTransaction(): bool
+    {
+        return $this->db->beginTransaction();
     }
+
+    public function commit(): bool
+    {
+        return $this->db->commit();
+    }
+
+    public function rollBack(): bool
+    {
+        return $this->db->rollBack();
+    }
+
+    public function inTransaction(): bool
+    {
+        return $this->db->inTransaction();
+    }
+
+
+}
 ?>
