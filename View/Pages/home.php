@@ -4,13 +4,6 @@ $pageTitle = 'NEXORA — Build Beyond Limits';
 $pageStylesheet = 'landing.css';
 $isAdminPage = false;
 $showStoreFooter = true;
-require_once __DIR__ . '/../../Controllers/CategoryController.php';
-$categories = [];
-try {
-  $categories = (new CategoryController())->getAll();
-} catch (PDOException $e) {
-  error_log($e->getMessage());
-}
 require_once __DIR__ . '/../Includes/header.php';
 ?>
     <!-- ================= NAVBAR ================= -->
@@ -208,26 +201,26 @@ require_once __DIR__ . '/../Includes/header.php';
         </p>
 
         <div class="grid grid-4" style="margin-top: 40px">
-          <?php if ($categories): ?>
-            <?php foreach ($categories as $category): ?>
-              <?php
-                $categoryId = (int) $category['id'];
-                $categoryName = (string) $category['name'];
-                $categoryImage = trim((string) ($category['image'] ?? ''));
-              ?>
-              <a href="../Layout/routing.php?page=products&amp;category=<?= $categoryId ?>" class="card cat-card">
-                <div class="cat-icon">
-                  <?php if ($categoryImage !== ''): ?>
-                    <img src="/Nexora/<?= htmlspecialchars(ltrim($categoryImage, '/'), ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">
-                  <?php else: ?>◈<?php endif; ?>
-                </div>
-                <h3><?= htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') ?></h3>
-                <p><?= (int) ($category['product_count'] ?? 0) ?> products</p>
-              </a>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <p class="section-sub">No categories are available right now.</p>
-          <?php endif; ?>
+          <a href="../Layout/routing.php?page=products&amp;category=1" class="card cat-card"
+            ><div class="cat-icon">🖥️</div>
+            <h3>Gaming PCs</h3>
+            <p>Prebuilt monsters</p></a
+          >
+          <a href="../Layout/routing.php?page=products&amp;category=2" class="card cat-card"
+            ><div class="cat-icon">⚡</div>
+            <h3>Components</h3>
+            <p>CPU · GPU · RAM · SSD</p></a
+          >
+          <a href="../Layout/routing.php?page=products&amp;category=3" class="card cat-card"
+            ><div class="cat-icon">💻</div>
+            <h3>Laptops</h3>
+            <p>Gaming &amp; creator</p></a
+          >
+          <a href="../Layout/routing.php?page=products&amp;category=4" class="card cat-card"
+            ><div class="cat-icon">🎧</div>
+            <h3>Peripherals</h3>
+            <p>Mice · keyboards · headsets</p></a
+          >
         </div>
       </div>
     </section>
