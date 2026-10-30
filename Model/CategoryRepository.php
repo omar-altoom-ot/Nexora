@@ -19,4 +19,21 @@ class CategoryRepository
 
         return $stmt->fetchAll();
     }
+
+
+    public function existsById(int $id): bool
+    {
+        $sql = "SELECT 1
+            FROM categories
+            WHERE id = :id
+            LIMIT 1";
+
+        $stmt = $this->db->run_query($sql, [
+            'id' => $id
+        ]);
+
+        return $stmt->fetchColumn() !== false;
+    }
+
+
 }
