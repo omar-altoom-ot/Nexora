@@ -17,5 +17,9 @@ class Db {
         return $stmt;
     }
 
+      public function beginTransaction() { return $this->db->beginTransaction(); }
+    public function commit() { return $this->db->commit(); }
+    public function rollBack() { if ($this->db->inTransaction()) { return $this->db->rollBack(); } return false; }
+
     }
 ?>
