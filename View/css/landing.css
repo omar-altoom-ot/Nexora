@@ -6,7 +6,7 @@
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
-  padding: 70px 0 110px;
+  padding: 10px 0 110px;
   overflow: hidden;
 }
 .hero-grid-bg {
@@ -270,8 +270,14 @@
   padding: 8px;
   border: 1px solid rgba(34, 211, 238, 0.45);
   border-radius: 22px;
-  background: radial-gradient(ellipse, rgba(18, 30, 61, 0.64), rgba(8, 7, 24, 0.76));
-  box-shadow: 0 0 22px rgba(34, 211, 238, 0.2), inset 0 0 18px rgba(139, 92, 246, 0.18);
+  background: radial-gradient(
+    ellipse,
+    rgba(18, 30, 61, 0.64),
+    rgba(8, 7, 24, 0.76)
+  );
+  box-shadow:
+    0 0 22px rgba(34, 211, 238, 0.2),
+    inset 0 0 18px rgba(139, 92, 246, 0.18);
   backdrop-filter: blur(3px);
 }
 .orbit-item::after {
