@@ -1,6 +1,7 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../Config/DBconnection.php';
+require_once __DIR__ . '/../../Controllers/CartController.php';
 
 $currentPage = 'product';
 $pageStylesheet = 'pages.css';
@@ -53,24 +54,42 @@ try {
       if (!is_string($actionToken) || !hash_equals($_SESSION['product_action_csrf_token'], $actionToken)) {
         $actionError = 'Your session expired. Refresh the page and try again.';
       } elseif ($action === 'add_to_cart') {
-        $actionQuantity = filter_var($_POST['quantity'] ?? null, FILTER_VALIDATE_INT);
-        if ($actionQuantity === false || $actionQuantity < 1 || $actionQuantity > (int) $product['stock_quantity']) {
-          $actionError = 'Choose a quantity available in stock.';
+
+    if (!$customerLoggedIn) {
+        $actionError = 'Please sign in to add products to your cart.';
+    } else {
+        $actionQuantity = filter_var(
+            $_POST['quantity'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        if ($actionQuantity === false || $actionQuantity < 1) {
+            $actionError = 'Please enter a valid quantity.';
         } else {
-          if (!isset($_SESSION['cart_items']) || !is_array($_SESSION['cart_items'])) {
-            $_SESSION['cart_items'] = [];
-          }
-          $productId = (int) $product['id'];
-          $existingQuantity = (int) ($_SESSION['cart_items'][$productId] ?? 0);
-          if ($existingQuantity + $actionQuantity > (int) $product['stock_quantity']) {
-            $actionError = 'Your cart already contains this item. The requested total exceeds available stock.';
-          } else {
-            $_SESSION['cart_items'][$productId] = $existingQuantity + $actionQuantity;
-            $_SESSION['product_action_flash'] = 'Added to your cart.';
-            header('Location: ../Layout/routing.php?page=product&id=' . (int) $product['id'] . '#purchase');
-            exit;
-          }
+            $customerId = (int) $_SESSION['customer_id'];
+            $productId = (int) $product['id'];
+
+            $cartController = new CartController($db);
+
+            $added = $cartController->addItem(
+                $customerId,
+                $productId,
+                $actionQuantity
+            );
+
+            if ($added) {
+                $_SESSION['product_action_flash'] = 'Added to your cart.';
+
+                header(
+                    'Location: ../Layout/routing.php?page=product&id='
+                    . $productId . '#purchase'
+                );
+                exit;
+            } else {
+                $actionError = 'Unable to add product. Check available stock.';
+            }
         }
+    }
       } elseif (!$customerLoggedIn) {
         $actionError = 'Sign in to save this product.';
       } elseif ($action === 'remove_from_wishlist') {
