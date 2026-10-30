@@ -12,51 +12,34 @@ class CartController
         $this->db = $db;
     }
 
-    public function create(Cart $model): int
+    // ADD PRODUCT TO CART
+    public function addItem(int $customerId, int $productId, int $quantity = 1): bool
     {
-        $result = $this->db->run_query(
-            'INSERT INTO carts (customer_id) VALUES (:customer_id)',
-            [
-                'customer_id' => $model->customer_id,
-            ]
-        );
-
-        return (int) $this->db->run_query('SELECT LAST_INSERT_ID() AS id')->fetch()['id'];
+        $cart = new Cart($this->db);
+        return $cart->addItem($customerId, $productId, $quantity);
     }
 
-    public function findById(int $id): ?array
+    // VIEW CART ITEMS
+    public function getItems(int $customerId): array
     {
-        $result = $this->db->run_query(
-            'SELECT id, customer_id FROM carts WHERE id = :id LIMIT 1',
-            ['id' => $id]
-        )->fetch();
+        $cart = new Cart($this->db);
 
-        return $result ?: null;
+        return $cart->getItems($customerId);
     }
 
-    public function update(Cart $model): bool
+    // UPDATE PRODUCT QUANTITY
+    public function updateQuantity(int $customerId, int $productId, int $quantity): bool
     {
-        $result = $this->db->run_query(
-            'UPDATE carts SET
-                 customer_id = :customer_id
-             WHERE id = :id',
-            [
-                'id' => $model->id,
-                'customer_id' => $model->customer_id,
-            ]
-        );
+        $cart = new Cart($this->db);
 
-        return $result->rowCount() > 0;
+        return $cart->updateQuantity($customerId, $productId, $quantity);
     }
 
-    public function delete(int $id): bool
+    // REMOVE PRODUCT FROM CART
+    public function removeItem(int $customerId, int $productId): bool
     {
-        $result = $this->db->run_query(
-            'DELETE FROM carts WHERE id = :id',
-            ['id' => $id]
-        );
+        $cart = new Cart($this->db);
 
-        return $result->rowCount() > 0;
+        return $cart->removeItem($customerId, $productId);
     }
 }
-

@@ -195,13 +195,17 @@ class OrderController
 		return $this->db->run_query('DELETE FROM orders WHERE id = :id', ['id' => $id])->rowCount() > 0;
 	}
 
-	    // USER: Check if user can cancel (5 hour window)
+    // USER: Check if user can cancel (10 minute window)
     public function canUserCancel(Order $order): bool
     {
-        if ($order->status !== 'pending' && $order->status !== 'confirmed') return false;
+        // Only allow cancel if pending
+        if ($order->status !== 'pending') return false;
+        
         $orderTime = strtotime($order->order_date);
-        $hoursPassed = (time() - $orderTime) / 3600;
-        return $hoursPassed <= 5;
+        $secondsPassed = time() - $orderTime;
+        
+        // 10 minutes = 600 seconds
+        return $secondsPassed <= 600;
     }
 
     // USER: Get all orders for a specific customer

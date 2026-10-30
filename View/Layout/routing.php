@@ -17,6 +17,7 @@ $routes = [
     'admin-profile' => __DIR__ . '/../Pages/admin-profile.php',
     'cart' => __DIR__ . '/../Pages/cart.php',
     'checkout' => __DIR__ . '/../Pages/checkout.php',
+    'compare' => __DIR__ . '/../Pages/compare.php',
     'home' => __DIR__ . '/../Pages/home.php',
     'login' => __DIR__ . '/../Pages/login.php',
     'product' => __DIR__ . '/../Pages/product.php',
@@ -25,6 +26,7 @@ $routes = [
     'wishlist' => __DIR__ . '/../Pages/wishlist.php',
     'admin-order-details' => __DIR__ . '/../Pages/admin-order-details.php',
     'my_orders' => __DIR__ . '/../Pages/my_orders.php',
+    'admin-notifications' => __DIR__ . '/../Pages/admin-notifications.php',
 ];
 
 $page = $_GET['page'] ?? 'home';

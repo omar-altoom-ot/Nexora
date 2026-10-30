@@ -1,4 +1,24 @@
 <?php
+require_once __DIR__ . '/../../Controllers/CategoryController.php';
+$homeCategories = [];
+try {
+  $homeCategories = (new CategoryController())->getAll();
+} catch (Throwable $error) {
+  error_log('Home category load failed: ' . $error->getMessage());
+}
+$categoryImageUrl = static function (?string $image): string {
+  if (!$image) return '';
+  if (preg_match('~\Ahttps?://~i', $image)) return $image;
+  return '/Nexora/' . ltrim(str_replace('\\', '/', preg_replace('~\A/?Nexora/~i', '', $image)), '/');
+};
+$categoryIcon = static function (string $name): string {
+  $name = strtolower($name);
+  if (str_contains($name, 'laptop')) return '💻';
+  if (str_contains($name, 'peripheral') || str_contains($name, 'accessor')) return '🎧';
+  if (str_contains($name, 'component')) return '⚡';
+  if (str_contains($name, 'pc') || str_contains($name, 'computer')) return '🖥️';
+  return '◈';
+};
 $currentPage = 'home';
 $pageTitle = 'NEXORA — Build Beyond Limits';
 $pageStylesheet = 'landing.css';
@@ -200,28 +220,27 @@ require_once __DIR__ . '/../Includes/header.php';
           Everything you need to build, upgrade and dominate.
         </p>
 
-        <div class="grid grid-4" style="margin-top: 40px">
-          <a href="../Layout/routing.php?page=products&amp;category=1" class="card cat-card"
-            ><div class="cat-icon">🖥️</div>
-            <h3>Gaming PCs</h3>
-            <p>Prebuilt monsters</p></a
-          >
-          <a href="../Layout/routing.php?page=products&amp;category=2" class="card cat-card"
-            ><div class="cat-icon">⚡</div>
-            <h3>Components</h3>
-            <p>CPU · GPU · RAM · SSD</p></a
-          >
-          <a href="../Layout/routing.php?page=products&amp;category=3" class="card cat-card"
-            ><div class="cat-icon">💻</div>
-            <h3>Laptops</h3>
-            <p>Gaming &amp; creator</p></a
-          >
-          <a href="../Layout/routing.php?page=products&amp;category=4" class="card cat-card"
-            ><div class="cat-icon">🎧</div>
-            <h3>Peripherals</h3>
-            <p>Mice · keyboards · headsets</p></a
-          >
-        </div>
+        <?php if ($homeCategories): ?>
+          <div class="grid grid-4" style="margin-top: 40px">
+            <?php foreach ($homeCategories as $category): ?>
+              <?php $imageUrl = $categoryImageUrl($category['image'] ?? null); ?>
+              <a href="../Layout/routing.php?page=products&amp;category=<?= (int) $category['id'] ?>" class="card cat-card">
+                <div class="cat-icon">
+                  <?php if ($imageUrl !== ''): ?>
+                    <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                    <span class="cat-icon-fallback" hidden><?= $categoryIcon((string) $category['name']) ?></span>
+                  <?php else: ?>
+                    <?= $categoryIcon((string) $category['name']) ?>
+                  <?php endif; ?>
+                </div>
+                <h3><?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') ?></h3>
+                <p><?= (int) $category['product_count'] ?> <?= (int) $category['product_count'] === 1 ? 'product' : 'products' ?></p>
+              </a>
+            <?php endforeach; ?>
+          </div>
+        <?php else: ?>
+          <p class="section-sub" style="margin-top:40px">No categories are available yet.</p>
+        <?php endif; ?>
       </div>
     </section>
 

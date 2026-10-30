@@ -32,8 +32,13 @@ class Db
         return $this->db->commit();
     }
 
+
     public function rollBack(): bool
     {
+        if (!$this->db->inTransaction()) {
+            return false;
+        }
+
         return $this->db->rollBack();
     }
 
