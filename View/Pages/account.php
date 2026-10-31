@@ -39,8 +39,14 @@ require_once __DIR__ . '/../Includes/header.php';
 
       <h3>
         <?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8') ?>
-      </h3><a class="active" href="../Layout/routing.php?page=account">Profile overview</a> <a href="../Layout/routing.php?page=my_orders">My orders</a>
-      <a href="../Layout/routing.php?page=wishlist">Wishlist</a><a href="#settings">Account settings</a>
+      </h3>
+      <a class="active" href="../Layout/routing.php?page=account">Profile overview</a> 
+      <a href="../Layout/routing.php?page=my_orders">My orders</a>
+      <a href="../Layout/routing.php?page=wishlist">Wishlist</a>
+      <!-- ADDED: My Coupons Link -->
+      <a href="../Layout/routing.php?page=my-coupons">My Coupons</a>
+
+      <a href="#settings">Account settings</a>
     </aside>
     <section>
       <div class="grid grid-3 account-stats">
