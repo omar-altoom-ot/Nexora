@@ -9,17 +9,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['apply_coupon_id']) |
     $error = '';
 
     if (isset($_POST['coupon_code']) && trim($_POST['coupon_code']) !== '') {
-        // Manual Code Entry
         $coupon = $couponController->getByCode(trim($_POST['coupon_code']));
         if (!$coupon) {
             $error = 'invalid';
         }
     } elseif (isset($_POST['apply_coupon_id'])) {
-        // Selected from list
         $coupon = $couponController->getById((int)$_POST['apply_coupon_id']);
     }
 
-    // Validate the coupon if found
     if ($coupon) {
         if ($coupon->is_active && strtotime($coupon->valid_until) >= strtotime(date('Y-m-d')) && $coupon->used_count < $coupon->usage_limit) {
             $_SESSION['applied_coupon'] = [
@@ -36,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['apply_coupon_id']) |
         }
     }
 
-    // If there's an error, save it to session to display in the modal
     if ($error) {
         $_SESSION['coupon_error'] = $error;
         header("Location: ../Layout/routing.php?page=checkout&show_coupon=1");
@@ -50,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_coupon'])) {
     exit;
 }
 
-// 2. SETUP PAGE VARIABLES
 $currentPage = 'checkout';
 $pageTitle = 'Checkout — NEXORA';
 $pageStylesheet = 'pages.css';
@@ -63,9 +58,8 @@ require_once __DIR__ . '/../Includes/header.php';
 
 $db = new Db();
 $customerId = $_SESSION['customer_id'] ?? 1;
-$isLoggedIn = isset($_SESSION['customer_id']); 
+$isLoggedIn = isset($_SESSION['customer_id']);
 
-// Fetch Cart Data
 $cartSql = "
     SELECT c.id AS cart_id, ci.product_id, ci.quantity, p.name, p.price
     FROM carts c
@@ -75,18 +69,15 @@ $cartSql = "
 ";
 $cartItems = $db->run_query($cartSql, [$customerId])->fetchAll();
 
-// Calculate Totals
 $subtotal = 0;
 foreach ($cartItems as $item) {
     $subtotal += ($item['price'] * $item['quantity']);
 }
 
-// Coupon Logic
 $discountAmount = 0;
 $appliedCoupon = $_SESSION['applied_coupon'] ?? null;
 
 if ($appliedCoupon) {
-    // Check if cart still meets min order requirement
     if ($subtotal >= $appliedCoupon['min_order']) {
         if ($appliedCoupon['type'] === 'percentage') {
             $discountAmount = $subtotal * ($appliedCoupon['value'] / 100);
@@ -95,7 +86,6 @@ if ($appliedCoupon) {
         }
         $discountAmount = min($discountAmount, $subtotal);
     } else {
-        // Cart dropped below minimum, remove coupon
         unset($_SESSION['applied_coupon']);
         $appliedCoupon = null;
         $_SESSION['coupon_error'] = 'minimum_not_met';
@@ -107,14 +97,12 @@ $tax = $discountedSubtotal * 0.05;
 $delivery = 2.00;
 $totalDue = $discountedSubtotal + $tax + $delivery;
 
-// Fetch User's Coupons (only if logged in)
 $userCoupons = [];
 if ($isLoggedIn) {
     $couponController = new CouponController(new Db());
     $userCoupons = $couponController->getUserCoupons($customerId);
 }
 
-// Check for error messages
 $couponError = $_SESSION['coupon_error'] ?? '';
 unset($_SESSION['coupon_error']);
 ?>
@@ -214,7 +202,7 @@ unset($_SESSION['coupon_error']);
   </div>
 </main>
 
-<!-- 3. THE COUPON MODAL (With Manual Input & Available List) -->
+<!-- 3. THE COUPON MODAL -->
 <div id="coupon-modal" class="modal-overlay" style="<?= isset($_GET['show_coupon']) ? 'display: flex;' : '' ?>">
   <div class="modal-content" style="max-height: 85vh; display: flex; flex-direction: column;">
     <h3>Select a Coupon</h3>
@@ -241,13 +229,14 @@ unset($_SESSION['coupon_error']);
 
     <div style="overflow-y: auto; flex: 1; padding-right: 5px;">
         <p class="muted" style="font-size: 0.8rem; margin-bottom: 10px;">Available Coupons:</p>
-        
+
         <?php if (empty($userCoupons)): ?>
             <div style="text-align: center; padding: 10px;">
                 <p class="muted">You don't have any active coupons.</p>
             </div>
         <?php else: ?>
-            <?php foreach ($userCoupons as $c): ?>
+            <!-- CHANGED: array_slice to limit to 4 oldest coupons -->
+            <?php foreach (array_slice($userCoupons, 0, 4) as $c): ?>
                 <form method="POST" action="../Layout/routing.php?page=checkout">
                     <input type="hidden" name="apply_coupon_id" value="<?= $c->id ?>">
                     <button type="submit" class="card" style="width: 100%; text-align: left; padding: 15px; margin-bottom: 10px; background: rgba(139,92,246,0.05); border: 1px solid var(--line); cursor: pointer; transition: background 0.2s;">

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../Controllers/CategoryController.php';
 require_once __DIR__ . '/../../Controllers/CouponController.php';
-// ... (after $homeCategories logic)
+
 $activeCoupons = [];
 try {
   $activeCoupons = (new CouponController(new Db()))->getPublicActive();
@@ -33,6 +33,9 @@ $pageStylesheet = 'landing.css';
 $isAdminPage = false;
 $showStoreFooter = true;
 require_once __DIR__ . '/../Includes/header.php';
+
+// CHANGED: limit to 7 coupons for the home ticker
+$homeCoupons = array_slice($activeCoupons, 0, 7);
 ?>
     <!-- ================= NAVBAR ================= -->
     <?php require __DIR__ . '/../Layout/user_nav.php'; ?>
@@ -97,7 +100,6 @@ require_once __DIR__ . '/../Includes/header.php';
             </div>
           </div>
 
-          <!-- Orbiting parts — the ring spins, each part counter-spins to stay upright -->
           <div class="orbit-ring" aria-hidden="true">
             <div class="floating-part part-cpu">
               <div class="floating-part-inner">
@@ -140,8 +142,6 @@ require_once __DIR__ . '/../Includes/header.php';
         var ring = rig.querySelector('.orbit-ring');
         if (!ring) return;
 
-        // Force the containing block + container to behave correctly
-        // no matter what other CSS on the page says.
         rig.style.setProperty('position', 'relative', 'important');
         ring.style.setProperty('position', 'absolute', 'important');
         ring.style.setProperty('top', '0', 'important');
@@ -165,8 +165,8 @@ require_once __DIR__ . '/../Includes/header.php';
           p.el.style.setProperty('margin', '0', 'important');
         });
 
-        var DURATION = 20000; // ms for one full revolution
-        var HALF = 46;        // half the part's 92px box, to center it
+        var DURATION = 20000;
+        var HALF = 46;
         var start = performance.now();
 
         function radiusFor(w) {
@@ -261,7 +261,6 @@ require_once __DIR__ . '/../Includes/header.php';
         </h2>
 
         <div class="grid grid-4" style="margin-top: 40px">
-          <!-- Add to cart as guest → /login -->
           <article class="card p-card">
             <a href="../Layout/routing.php?page=product" class="p-img"
               ><span class="badge badge-hot">Hot</span>🎮</a
@@ -326,52 +325,98 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </div>
     </section>
-	    <!-- ================= PROMO / COUPONS ================= -->
-    <?php if (!empty($activeCoupons)): ?>
+
+    <!-- ================= PROMO / COUPONS (ROTATING TICKER, UP TO 7) ================= -->
+    <?php if (!empty($homeCoupons)): ?>
+    <style>
+      /* CHANGED: horizontal rotating coupon ticker */
+      .coupon-ticker-wrap {
+        position: relative;
+        overflow: hidden;
+        margin-top: 30px;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+                mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+      }
+      .coupon-ticker {
+        display: flex;
+        gap: 20px;
+        width: max-content;
+        animation: couponScroll 40s linear infinite;
+        will-change: transform;
+      }
+      .coupon-ticker-wrap:hover .coupon-ticker {
+        animation-play-state: paused;
+      }
+      @keyframes couponScroll {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+      }
+      .coupon-tile {
+        width: 300px;
+        flex: 0 0 300px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        border-color: rgba(34, 211, 238, 0.4);
+      }
+      @media (max-width: 600px) {
+        .coupon-tile { width: 240px; flex: 0 0 240px; padding: 18px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .coupon-ticker { animation: none; }
+      }
+    </style>
+
     <section class="section" style="padding-top: 40px;">
       <div class="container">
         <span class="eyebrow">// Player Perks</span>
         <h2 class="section-title">Unlock exclusive <span class="text-grad">deals</span></h2>
         <p class="section-sub">Grab these codes before they expire and boost your setup.</p>
 
-        <div class="grid grid-4" style="margin-top: 30px;">
-          <?php foreach (array_slice($activeCoupons, 0, 4) as $coupon): ?>
-            <div class="card" style="padding: 24px; position: relative; overflow: hidden; border-color: rgba(34, 211, 238, 0.4);">
-              <!-- Decorative glow -->
-              <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: var(--cyan); filter: blur(40px); opacity: 0.3;"></div>
-              
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <span class="badge badge-ok">Active</span>
-                <span style="font-family: var(--font-head); font-size: 1.2rem; color: var(--cyan);">
-                  <?= $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : $coupon->discount_value . ' JD' ?> OFF
-                </span>
+        <div class="coupon-ticker-wrap">
+          <div class="coupon-ticker">
+            <?php
+              // CHANGED: render the list twice for a seamless infinite loop
+              for ($loop = 0; $loop < 2; $loop++):
+                foreach ($homeCoupons as $coupon):
+            ?>
+              <div class="card coupon-tile">
+                <!-- Decorative glow -->
+                <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: var(--cyan); filter: blur(40px); opacity: 0.3; pointer-events: none;"></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                  <span class="badge badge-ok">Active</span>
+                  <span style="font-family: var(--font-head); font-size: 1.2rem; color: var(--cyan);">
+                    <?= $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : $coupon->discount_value . ' JD' ?> OFF
+                  </span>
+                </div>
+
+                <h3 style="font-family: var(--font-head); font-size: 1.4rem; letter-spacing: 2px; margin: 10px 0; color: #fff;">
+                  <?php if (isset($_SESSION['customer_id'])): ?>
+                      <?= htmlspecialchars($coupon->code) ?>
+                  <?php else: ?>
+                      ••••••••
+                  <?php endif; ?>
+                </h3>
+
+                <p class="muted" style="font-size: 0.8rem; margin-bottom: 16px;">
+                  Min. order: <b><?= number_format($coupon->min_order_amount, 2) ?> JD</b>
+                </p>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <?php if (isset($_SESSION['customer_id'])): ?>
+                      <button class="btn btn-primary btn-sm full copy-btn" data-code="<?= htmlspecialchars($coupon->code) ?>">
+                        Copy Code
+                      </button>
+                  <?php else: ?>
+                      <a href="../Layout/routing.php?page=login" class="btn btn-ghost btn-sm full" style="border-color: var(--purple);">
+                        Log in to unlock
+                      </a>
+                  <?php endif; ?>
+                </div>
               </div>
-              
-              <h3 style="font-family: var(--font-head); font-size: 1.4rem; letter-spacing: 2px; margin: 10px 0; color: #fff;">
-                <?php if (isset($_SESSION['customer_id'])): ?>
-                    <?= htmlspecialchars($coupon->code) ?>
-                <?php else: ?>
-                    ••••••••
-                <?php endif; ?>
-              </h3>
-              
-              <p class="muted" style="font-size: 0.8rem; margin-bottom: 16px;">
-                Min. order: <b><?= number_format($coupon->min_order_amount, 2) ?> JD</b>
-              </p>
-              
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <?php if (isset($_SESSION['customer_id'])): ?>
-                    <button class="btn btn-primary btn-sm full copy-btn" data-code="<?= htmlspecialchars($coupon->code) ?>">
-                      Copy Code
-                    </button>
-                <?php else: ?>
-                    <a href="../Layout/routing.php?page=login" class="btn btn-ghost btn-sm full" style="border-color: var(--purple);">
-                      Log in to unlock
-                    </a>
-                <?php endif; ?>
-              </div>
-            </div>
-          <?php endforeach; ?>
+            <?php endforeach; endfor; ?>
+          </div>
         </div>
       </div>
     </section>
@@ -424,6 +469,7 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </div>
     </section>
+
 <script>
 document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', function() {
