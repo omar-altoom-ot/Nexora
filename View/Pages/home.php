@@ -59,6 +59,8 @@ require_once __DIR__ . '/../Includes/header.php';
 
 // CHANGED: limit to 7 coupons for the home ticker
 $homeCoupons = array_slice($activeCoupons, 0, 7);
+$isLoggedInCustomer = isset($_SESSION['customer_id'])
+  && ($_SESSION['user_role'] ?? null) === 'customer';
 ?>
     <!-- ================= NAVBAR ================= -->
     <?php require __DIR__ . '/../Layout/user_nav.php'; ?>
@@ -80,7 +82,7 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
           </p>
           <div class="hero-cta">
             <a href="../Layout/routing.php?page=products" class="btn btn-primary">Shop Now</a>
-            <a href="../Layout/routing.php?page=products" class="btn btn-ghost">Build Your PC</a>
+            <a href="../Layout/routing.php?page=builder" class="btn btn-ghost">Build Your PC</a>
           </div>
           <div class="hero-stats">
             <div><strong>12K+</strong><span>Products</span></div>
@@ -252,7 +254,7 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
         </p>
 
         <?php if ($homeCategories): ?>
-          <div class="grid grid-4" style="margin-top: 40px">
+          <div class="grid grid-4 home-featured-grid" style="margin-top: 40px">
             <?php foreach ($homeCategories as $category): ?>
               <?php $imageUrl = $categoryImageUrl($category['image'] ?? null); ?>
               <a href="../Layout/routing.php?page=products&amp;category=<?= (int) $category['id'] ?>" class="card cat-card">
@@ -291,9 +293,9 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
                 $imageUrl = $productImageUrl($product['image_path'] ?? null);
               ?>
               <article class="card p-card">
-                <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="p-img">
+                <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="p-img home-featured-image-link">
                   <?php if ($imageUrl !== ''): ?>
-                    <img class="catalog-product-image" src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                    <img class="home-featured-image" src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
                   <?php else: ?>◈<?php endif; ?>
                 </a>
                 <div class="p-body">
@@ -447,15 +449,17 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
     </section>
 
     <!-- ================= CTA ================= -->
-    <section class="section" style="padding-top: 0">
-      <div class="container">
-        <div class="cta-band">
-          <h2>Ready to <span class="text-grad">level up</span>?</h2>
-          <p>Create your account and start building your dream rig today.</p>
-          <a href="../Layout/routing.php?page=register" class="btn btn-primary">Create account</a>
+    <?php if (!$isLoggedInCustomer): ?>
+      <section class="section" style="padding-top: 0">
+        <div class="container">
+          <div class="cta-band">
+            <h2>Ready to <span class="text-grad">level up</span>?</h2>
+            <p>Create your account and start building your dream rig today.</p>
+            <a href="../Layout/routing.php?page=register" class="btn btn-primary">Create account</a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    <?php endif; ?>
 
 <script>
 document.querySelectorAll('.copy-btn').forEach(btn => {

@@ -966,27 +966,25 @@
   flex-direction: column;
 }
 .p-img {
-  height: 210px;
+  height: 230px;
+  min-height: 230px;
+  flex: 0 0 230px;
   display: grid;
   place-items: center;
   font-size: 4rem;
   position: relative;
-  background:
-    radial-gradient(
-      circle at 50% 40%,
-      rgba(139, 92, 246, 0.35),
-      transparent 65%
-    ),
-    var(--panel);
+  overflow: hidden;
+  background: #f4f3f8;
 }
 .p-img .catalog-product-image {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  padding: 16px;
+  padding: 18px;
   box-sizing: border-box;
   object-fit: contain;
+  display: block;
 }
 .p-img .badge {
   position: absolute;
@@ -996,8 +994,10 @@
 .p-body {
   padding: 20px;
   display: grid;
+  grid-template-rows: auto minmax(2.8em, auto) 1fr;
   gap: 8px;
   flex: 1;
+  min-width: 0;
 }
 .p-cat {
   font-size: 0.7rem;
@@ -1006,6 +1006,13 @@
   color: var(--cyan);
 }
 .p-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
   font-weight: 700;
 }
 .p-stars {
@@ -1017,11 +1024,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-top: 8px;
 }
 .p-price {
   font-family: var(--font-head);
   font-size: 1.25rem;
+  white-space: nowrap;
+}
+.p-foot > .btn {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.home-featured-grid .home-featured-image-link {
+  height: 230px;
+  min-height: 230px;
+  flex: 0 0 230px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: #f4f3f8;
+}
+.home-featured-grid .home-featured-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  padding: 18px;
+  box-sizing: border-box;
+  object-fit: contain;
+}
+.home-featured-grid .p-body {
+  grid-template-rows: auto minmax(2.8em, auto) auto;
+  gap: 10px;
+}
+.home-featured-grid .p-foot {
+  align-self: end;
+  flex-wrap: nowrap;
+}
+@media (max-width: 420px) {
+  .home-featured-grid .home-featured-image-link {
+    height: 210px;
+    min-height: 210px;
+    flex-basis: 210px;
+  }
+  .home-featured-grid .p-foot {
+    flex-wrap: wrap;
+  }
 }
 .p-price small {
   color: var(--muted);
