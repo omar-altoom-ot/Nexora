@@ -1,4 +1,5 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 $currentPage = 'checkout';
 $pageTitle = 'Checkout — NEXORA';
 $pageStylesheet = 'pages.css';
@@ -6,20 +7,21 @@ $isAdminPage = false;
 $showStoreFooter = false;
 
 require_once __DIR__ . '/../../Config/DBconnection.php';
-require_once __DIR__ . '/../Includes/header.php';
+require_once __DIR__ . '/../../Controllers/CartController.php';
 
 $db = new Db();
-$customerId = $_SESSION['customer_id'] ?? 1; 
+$customerId = (int) ($_SESSION['customer_id'] ?? 0);
+if ($customerId <= 0 || ($_SESSION['user_role'] ?? '') !== 'customer') {
+    header('Location: ../Layout/routing.php?page=login');
+    exit;
+}
+if (empty($_SESSION['checkout_csrf_token'])) {
+    $_SESSION['checkout_csrf_token'] = bin2hex(random_bytes(32));
+}
+require_once __DIR__ . '/../Includes/header.php';
 
-// Fetch Cart Data
-$cartSql = "
-    SELECT c.id AS cart_id, ci.product_id, ci.quantity, p.name, p.price 
-    FROM carts c
-    JOIN cart_items ci ON c.id = ci.cart_id
-    JOIN products p ON p.id = ci.product_id
-    WHERE c.customer_id = ?
-";
-$cartItems = $db->run_query($cartSql, [$customerId])->fetchAll();
+// The cart belongs to this browser session, regardless of login status.
+$cartItems = (new CartController($db))->getItems($customerId);
 
 // Calculate Totals
 $subtotal = 0;
@@ -50,11 +52,7 @@ $totalDue = $subtotal + $tax + $delivery;
       id="checkout-form"
       method="POST"
       action="../Pages/checkout_process.php">
-          <!-- Hidden cart items so checkout_process knows what to insert -->
-          <?php foreach ($cartItems as $item): ?>
-              <input type="hidden" name="cart_items[]" value="<?= $item['product_id'] ?>|<?= $item['quantity'] ?>|<?= $item['price'] ?>">
-          <?php endforeach; ?>
-
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['checkout_csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
           <h2>Delivery details</h2>
           <p class="muted">Where should we deliver your gear?</p>
           
@@ -181,7 +179,7 @@ $totalDue = $subtotal + $tax + $delivery;
                 document.getElementById('success-modal').style.display = 'flex';
                 window.lastOrder = data;
             } else {
-                alert("Something went wrong.");
+                alert(data.message || "Something went wrong.");
                 btn.innerText = "Confirm order";
                 btn.disabled = false;
             }

@@ -102,7 +102,7 @@ class CatalogController
 
 
         // 2. Products per page
-        $perPage = 12;
+        $perPage = 9;
 
         // 3. Count active products
 

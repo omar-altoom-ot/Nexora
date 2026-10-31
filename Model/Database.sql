@@ -80,6 +80,7 @@ CREATE TABLE cart_items (
 	cart_id BIGINT UNSIGNED NOT NULL,
 	product_id BIGINT UNSIGNED NOT NULL,
 	quantity INT UNSIGNED NOT NULL,
+	stock_reserved_quantity INT UNSIGNED NOT NULL DEFAULT 0,
 
 	CONSTRAINT fk_cart_items_cart
 		FOREIGN KEY (cart_id)

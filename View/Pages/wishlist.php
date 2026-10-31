@@ -1,6 +1,7 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../Config/DBconnection.php';
+require_once __DIR__ . '/../../Controllers/CartController.php';
 
 $currentPage = 'wishlist';
 $pageTitle = 'Wishlist — NEXORA';
@@ -42,42 +43,13 @@ try {
         header('Location: ../Layout/routing.php?page=wishlist');
         exit;
       } elseif ($action === 'add_to_cart') {
-        $product = $db->run_query(
-          'SELECT stock_quantity FROM products WHERE id = :id LIMIT 1',
-          ['id' => $productId]
-        )->fetch();
-        if (!$product || (int) $product['stock_quantity'] < 1) {
-          $actionError = 'This product is currently out of stock.';
+        $cartController = new CartController($db);
+        if ($cartController->addItem($customerId, (int) $productId, 1)) {
+          $_SESSION['wishlist_flash'] = 'Product added successfully to your cart.';
+          header('Location: ../Layout/routing.php?page=wishlist');
+          exit;
         } else {
-          $cart = $db->run_query(
-            'SELECT id FROM carts WHERE customer_id = :customer_id ORDER BY id ASC LIMIT 1',
-            ['customer_id' => $customerId]
-          )->fetch();
-          if (!$cart) {
-            $db->run_query('INSERT INTO carts (customer_id) VALUES (:customer_id)', ['customer_id' => $customerId]);
-            $cartId = (int) $db->run_query('SELECT LAST_INSERT_ID() AS id')->fetch()['id'];
-          } else {
-            $cartId = (int) $cart['id'];
-          }
-          $cartItem = $db->run_query(
-            'SELECT id, quantity FROM cart_items WHERE cart_id = :cart_id AND product_id = :product_id LIMIT 1',
-            ['cart_id' => $cartId, 'product_id' => $productId]
-          )->fetch();
-          if ($cartItem && (int) $cartItem['quantity'] >= (int) $product['stock_quantity']) {
-            $actionError = 'Your cart already contains the maximum available quantity.';
-          } elseif ($cartItem) {
-            $db->run_query('UPDATE cart_items SET quantity = quantity + 1 WHERE id = :id', ['id' => (int) $cartItem['id']]);
-          } else {
-            $db->run_query(
-              'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (:cart_id, :product_id, 1)',
-              ['cart_id' => $cartId, 'product_id' => $productId]
-            );
-          }
-          if ($actionError === '') {
-            $_SESSION['wishlist_flash'] = 'Product added to your cart.';
-            header('Location: ../Layout/routing.php?page=wishlist');
-            exit;
-          }
+          $actionError = 'Could not add the product. Check the available stock.';
         }
       } else {
         $actionError = 'Invalid wishlist action.';

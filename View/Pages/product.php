@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../Config/DBconnection.php';
 require_once __DIR__ . '/../../Controllers/CartController.php';
+require_once __DIR__ . '/../../Controllers/ReviewModerationController.php';
 
 $currentPage = 'product';
 $pageStylesheet = 'pages.css';
@@ -14,6 +15,7 @@ $rating = ['average_rating' => 0, 'review_count' => 0];
 $myReview = null;
 $pageError = '';
 $reviewError = '';
+$reviewAbusiveError = false;
 $reviewRating = 5;
 $reviewComment = '';
 $isInWishlist = false;
@@ -54,10 +56,6 @@ try {
       if (!is_string($actionToken) || !hash_equals($_SESSION['product_action_csrf_token'], $actionToken)) {
         $actionError = 'Your session expired. Refresh the page and try again.';
       } elseif ($action === 'add_to_cart') {
-
-    if (!$customerLoggedIn) {
-        $actionError = 'Please sign in to add products to your cart.';
-    } else {
         $actionQuantity = filter_var(
             $_POST['quantity'] ?? null,
             FILTER_VALIDATE_INT
@@ -66,7 +64,7 @@ try {
         if ($actionQuantity === false || $actionQuantity < 1) {
             $actionError = 'Please enter a valid quantity.';
         } else {
-            $customerId = (int) $_SESSION['customer_id'];
+            $customerId = $customerLoggedIn ? (int) $_SESSION['customer_id'] : 0;
             $productId = (int) $product['id'];
 
             $cartController = new CartController($db);
@@ -78,7 +76,7 @@ try {
             );
 
             if ($added) {
-                $_SESSION['product_action_flash'] = 'Added to your cart.';
+                $_SESSION['product_action_flash'] = 'Added successfully to your cart.';
 
                 header(
                     'Location: ../Layout/routing.php?page=product&id='
@@ -89,7 +87,6 @@ try {
                 $actionError = 'Unable to add product. Check available stock.';
             }
         }
-    }
       } elseif (!$customerLoggedIn) {
         $actionError = 'Sign in to save this product.';
       } elseif ($action === 'remove_from_wishlist') {
@@ -156,6 +153,20 @@ try {
       } elseif ($reviewComment === '' || mb_strlen($reviewComment) > 2000) {
         $reviewError = 'Write a review of up to 2,000 characters.';
       } else {
+        try {
+          $moderation = new ReviewModerationController();
+          if (!$moderation->isAcceptable($reviewComment)) {
+            $reviewError = 'Please remove profanity or abusive language from your review.';
+            $reviewAbusiveError = true;
+          }
+        } catch (Throwable $error) {
+          error_log('Review moderation failed: ' . $error->getMessage());
+          $reviewError = 'We could not check this review right now. Please try again.';
+        }
+
+        if ($reviewError !== '') {
+          // Do not save a review when language moderation rejects it or is unavailable.
+        } else {
         $existing = $db->run_query(
           'SELECT id FROM reviews WHERE customer_id = :customer_id AND product_id = :product_id LIMIT 1',
           ['customer_id' => (int) $_SESSION['customer_id'], 'product_id' => (int) $product['id']]
@@ -176,6 +187,7 @@ try {
         $_SESSION['product_review_flash'] = $notice === 'updated' ? 'Your review has been updated.' : 'Thanks! Your review has been added.';
         header('Location: ../Layout/routing.php?page=product&id=' . (int) $product['id'] . '#reviews');
         exit;
+        }
       }
     }
 
@@ -220,8 +232,7 @@ $imageUrl = static function (string $image): string {
 $averageRating = (float) ($rating['average_rating'] ?? 0);
 $reviewCount = (int) ($rating['review_count'] ?? 0);
 $stock = (int) ($product['stock_quantity'] ?? 0);
-$cartQuantity = $product ? (int) ($_SESSION['cart_items'][(int) $product['id']] ?? 0) : 0;
-$availableToAdd = max(0, $stock - $cartQuantity);
+$availableToAdd = $stock;
 $quantityValue = $actionQuantity > 0
   ? min($actionQuantity, max(1, $availableToAdd))
   : 1;
@@ -280,7 +291,7 @@ require_once __DIR__ . '/../Includes/header.php';
         <input type="hidden" name="action" value="submit_review"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['product_review_csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
         <label for="review-rating">Your rating</label><select class="input" id="review-rating" name="rating" required><?php for ($score = 5; $score >= 1; $score--): ?><option value="<?= $score ?>" <?= (int) ($myReview['rating'] ?? $reviewRating) === $score ? 'selected' : '' ?>><?= $score ?> star<?= $score === 1 ? '' : 's' ?> <?= str_repeat('★', $score) ?></option><?php endfor; ?></select>
         <label for="review-comment">Your review</label><textarea class="input" id="review-comment" name="comment" rows="4" maxlength="2000" required placeholder="What did you think of this product?"><?= htmlspecialchars($reviewComment !== '' ? $reviewComment : (string) ($myReview['comment'] ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
-        <div class="review-form-actions"><button class="btn btn-primary" type="submit"><?= $myReview ? 'Save changes' : 'Submit review' ?></button><button class="btn btn-ghost btn-sm" type="button" data-review-close>Cancel</button></div>
+        <div class="review-form-actions"><button class="btn btn-primary" type="submit" data-review-submit-button><?= $myReview ? 'Save changes' : 'Submit review' ?></button><button class="btn btn-ghost btn-sm" type="button" data-review-close>Cancel</button></div>
       </form>
     </div></div>
     <?php endif; ?>
@@ -289,6 +300,7 @@ require_once __DIR__ . '/../Includes/header.php';
 <style>
 .product-visual{overflow:hidden}.product-main-image{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:26px;z-index:0}.product-visual>.badge,.product-visual>.visual-caption{z-index:1}.product-image-placeholder{font-size:7rem;color:var(--cyan);text-shadow:0 0 42px rgba(34,211,238,.25)}.product-thumb{width:70px;height:65px;padding:5px;overflow:hidden}.product-thumb img{width:100%;height:100%;object-fit:cover;border-radius:5px}.product-thumb.active{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.2)}.product-description-lead{line-height:1.8;white-space:normal}.stock-out{color:#fb7185}.compat a{display:inline-block;margin-top:7px;color:var(--cyan);font-size:.78rem}.product-reviews{margin-top:35px}.product-reviews h2{font:700 1.1rem var(--font-head)}.review-list{display:grid;gap:12px}.product-review{padding:16px 0;border-top:1px solid var(--line)}.review-heading{display:flex;justify-content:space-between;gap:12px}.review-heading b{font-size:.85rem}.review-owner-actions{display:flex;align-items:center;gap:8px}.review-owner-actions form{margin:0}.review-delete-button{color:#fb7185}.review-delete-button:hover{border-color:#fb7185;color:#fff}.rating-stars{color:var(--amber);letter-spacing:2px}.product-review p{color:var(--muted);font-size:.85rem;line-height:1.7;margin:8px 0 0}.review-form-panel{padding:18px;margin:18px 0 10px;border:1px solid var(--line);border-radius:12px;background:rgba(139,92,246,.06)}.review-form-panel h3{font:700 .95rem var(--font-head);margin:0 0 14px}.review-form{display:grid;gap:9px;max-width:620px}.review-form label{margin-top:5px;font-size:.78rem;color:var(--muted)}.review-form select{max-width:220px}.review-form textarea{resize:vertical;min-height:105px}.review-form-actions{display:flex;gap:8px;margin-top:6px}.product-cart-form{display:flex;align-items:center;gap:10px;margin:0}.product-quantity{gap:7px;padding:3px}.product-quantity button{width:32px;height:32px;padding:0;display:grid;place-items:center}.product-quantity input{width:38px;padding:4px 0;border:0;background:transparent;color:var(--text);text-align:center;font:600 .9rem var(--font-body);appearance:textfield}.product-quantity input::-webkit-inner-spin-button,.product-quantity input::-webkit-outer-spin-button{appearance:none;margin:0}.product-quantity button:disabled,.product-cart-form button:disabled{opacity:.5;cursor:not-allowed}.purchase-row{flex-wrap:wrap}.product-wishlist-form{margin:0}.product-cart-form>.btn,.product-wishlist-button{height:68px;min-height:68px;box-sizing:border-box}.product-wishlist-button{white-space:nowrap;padding:14px 22px;font-size:.72rem}.product-action-notice{margin:10px 0}.review-heading-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.review-heading-main h2{margin:0}.review-heading-main .status{margin:0}.review-header-actions{display:flex;align-items:center;gap:16px}.review-open-button{margin:0;white-space:nowrap}.review-form-panel[hidden]{display:none}
 .product-visual{overflow:hidden}.product-main-image{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:26px;z-index:0}.product-visual>.badge,.product-visual>.visual-caption{z-index:1}.product-image-placeholder{font-size:7rem;color:var(--cyan);text-shadow:0 0 42px rgba(34,211,238,.25)}.product-thumb{width:70px;height:65px;padding:5px;overflow:hidden}.product-thumb img{width:100%;height:100%;object-fit:cover;border-radius:5px}.product-thumb.active{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.2)}.product-description-lead{line-height:1.8;white-space:normal}.stock-out{color:#fb7185}.compat a{display:inline-block;margin-top:7px;color:var(--cyan);font-size:.78rem}.product-reviews{margin-top:35px}.product-reviews[hidden]{display:none!important}.product-reviews h2{font:700 1.1rem var(--font-head)}.review-list{display:grid;gap:12px}.product-review{padding:16px 0;border-top:1px solid var(--line)}.review-heading{display:flex;justify-content:space-between;gap:12px}.review-heading b{font-size:.85rem}.review-owner-actions{display:flex;align-items:center;gap:8px}.review-owner-actions form{margin:0}.review-delete-button{color:#fb7185}.review-delete-button:hover{border-color:#fb7185;color:#fff}.rating-stars{color:var(--amber);letter-spacing:2px}.product-review p{color:var(--muted);font-size:.85rem;line-height:1.7;margin:8px 0 0}.review-form{display:grid;gap:9px;max-width:620px}.review-form label{margin-top:5px;font-size:.78rem;color:var(--muted)}.review-form select{max-width:220px}.review-form textarea{resize:vertical;min-height:105px}.review-form-actions{display:flex;gap:8px;margin-top:12px}.review-modal-overlay{display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;padding:18px;background:rgba(6,4,14,.84);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.review-modal-content{width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;background:linear-gradient(160deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:30px;box-shadow:0 0 40px rgba(139,92,246,.4);animation:review-modal-pop .3s ease-out}.review-modal-content h3{font:700 1.1rem var(--font-head);margin:0 0 18px}.review-modal-content .review-form{max-width:none}.review-modal-content .review-form select{max-width:none}.review-modal-overlay[aria-hidden="true"]{pointer-events:none}@keyframes review-modal-pop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
+.review-submit-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:8px;animation:review-submit-spin .7s linear infinite}.review-form [data-review-submit-button]:disabled{opacity:.78;cursor:wait}.swal2-container{z-index:10050!important}@keyframes review-submit-spin{to{transform:rotate(360deg)}}
 .tab-panel-enter{animation:tab-panel-enter .24s ease-out both}@keyframes tab-panel-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.tab-panel-enter{animation:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -350,13 +362,15 @@ document.querySelectorAll('[data-quantity-step]').forEach(function (button) {
   updateQuantityButtons();
 });
 function openReviewModal(){var modal=document.getElementById('review-modal');if(!modal)return;modal.style.display='flex';modal.setAttribute('aria-hidden','false');var field=modal.querySelector('select,textarea');if(field)field.focus();}
-function closeReviewModal(){var modal=document.getElementById('review-modal');if(modal){modal.style.display='none';modal.setAttribute('aria-hidden','true');}}
+function closeReviewModal(){var modal=document.getElementById('review-modal');if(modal){modal.style.display='none';modal.setAttribute('aria-hidden','true');}if(window.location.hash==='#reviews'){history.replaceState(null,'',window.location.pathname+window.location.search);}}
 document.querySelectorAll('[data-review-open]').forEach(function(button){button.addEventListener('click',openReviewModal);});
 document.querySelectorAll('[data-review-close]').forEach(function(button){button.addEventListener('click',closeReviewModal);});
 var reviewModal=document.getElementById('review-modal');if(reviewModal){reviewModal.addEventListener('click',function(event){if(event.target===reviewModal)closeReviewModal();});}
+document.querySelectorAll('.review-form').forEach(function(form){form.addEventListener('submit',function(){var button=form.querySelector('[data-review-submit-button]');if(!button||button.disabled)return;button.disabled=true;button.innerHTML='<span class="review-submit-spinner" aria-hidden="true"></span>Checking review...';});});
 document.querySelectorAll('[data-delete-review]').forEach(function(form){form.addEventListener('submit',function(event){event.preventDefault();Swal.fire({title:'Delete your review?',text:'This will permanently remove your review.',icon:'warning',showCancelButton:true,confirmButtonText:'Delete',cancelButtonText:'Cancel',reverseButtons:true,buttonsStyling:false,customClass:{popup:'nexora-deactivate-modal',confirmButton:'nexora-confirm-danger',cancelButton:'nexora-cancel-neutral'},background:'#15102a',color:'#f9f5ff'}).then(function(result){if(result.isConfirmed)form.submit();});});});
 <?php if ($reviewError !== '' && $customerLoggedIn): ?>openReviewModal();<?php endif; ?>
 <?php if ($reviewMessage !== ''): ?>Swal.fire({toast:true,position:'top-end',icon:'success',title:<?= json_encode($reviewMessage, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,showConfirmButton:false,timer:3000,timerProgressBar:true,background:'#1d152d',color:'#f9f5ff'});
+<?php elseif ($reviewAbusiveError): ?>Swal.fire({title:'Please avoid offensive language',text:'Your review contains abusive or offensive language. Remove those words, then submit it again.',icon:'warning',confirmButtonText:'Edit review',buttonsStyling:false,customClass:{popup:'nexora-deactivate-modal',confirmButton:'nexora-confirm-neutral'},background:'#15102a',color:'#f9f5ff'}).then(function(){var field=document.getElementById('review-comment');if(field)field.focus();});
 <?php elseif ($reviewError !== ''): ?>Swal.fire({toast:true,position:'top-end',icon:'error',title:<?= json_encode($reviewError, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,showConfirmButton:false,timer:4500,timerProgressBar:true,background:'#1d152d',color:'#f9f5ff'});<?php endif; ?>
 <?php if ($actionMessage !== ''): ?>Swal.fire({toast:true,position:'top-end',icon:'success',title:<?= json_encode($actionMessage, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,showConfirmButton:false,timer:3000,timerProgressBar:true,background:'#1d152d',color:'#f9f5ff'});
 <?php elseif ($actionError !== ''): ?>Swal.fire({toast:true,position:'top-end',icon:'error',title:<?= json_encode($actionError, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,showConfirmButton:false,timer:4500,timerProgressBar:true,background:'#1d152d',color:'#f9f5ff'});<?php endif; ?>
