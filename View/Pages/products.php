@@ -1,8 +1,11 @@
 <?php
 
 if (!isset($catalogData) || !is_array($catalogData)) {
-    http_response_code(500);
-    exit('Catalog data is unavailable.');
+    // Keep the page usable when opened directly, outside routing.php.
+    require_once __DIR__ . '/../../Controllers/CatalogController.php';
+
+    $catalogRepository = new CatalogRepository(new Db());
+    $catalogData = (new CatalogController($catalogRepository))->index($_GET);
 }
 
 // Data received from CatalogController

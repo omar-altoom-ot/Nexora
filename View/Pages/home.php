@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../Controllers/CategoryController.php';
 require_once __DIR__ . '/../../Controllers/CouponController.php';
+require_once __DIR__ . '/../../Config/DBconnection.php';
 
 $activeCoupons = [];
 try {
@@ -14,6 +15,27 @@ try {
 } catch (Throwable $error) {
   error_log('Home category load failed: ' . $error->getMessage());
 }
+$featuredProducts = [];
+try {
+  $featuredProducts = (new Db())->run_query(
+    "SELECT p.id, p.name, p.price, p.stock_quantity, c.name AS category_name,
+            (SELECT pi.image FROM product_images AS pi WHERE pi.product_id = p.id ORDER BY pi.id ASC LIMIT 1) AS image_path
+     FROM products AS p
+     INNER JOIN categories AS c ON c.id = p.category_id
+     WHERE p.is_active = 1
+     ORDER BY p.id DESC
+     LIMIT 4"
+  )->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $error) {
+  error_log('Home featured products load failed: ' . $error->getMessage());
+}
+$productImageUrl = static function (?string $image): string {
+  $image = trim(str_replace('\\', '/', (string) $image));
+  $image = preg_replace('~^/?Nexora/~i', '', $image);
+  $image = ltrim($image, '/');
+  if (!str_starts_with($image, 'Assets/Images/products/') || str_contains($image, '..')) return '';
+  return '/Nexora/' . $image;
+};
 $categoryImageUrl = static function (?string $image): string {
   if (!$image) return '';
   if (preg_match('~\Ahttps?://~i', $image)) return $image;
@@ -57,7 +79,7 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
           </p>
           <div class="hero-cta">
             <a href="../Layout/routing.php?page=products" class="btn btn-primary">Shop Now</a>
-            <a href="/pc-builder" class="btn btn-ghost">Build Your PC</a>
+            <a href="../Layout/routing.php?page=products" class="btn btn-ghost">Build Your PC</a>
           </div>
           <div class="hero-stats">
             <div><strong>12K+</strong><span>Products</span></div>
@@ -260,69 +282,33 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
           Trending <span class="text-grad">gear</span>
         </h2>
 
-        <div class="grid grid-4" style="margin-top: 40px">
-          <article class="card p-card">
-            <a href="../Layout/routing.php?page=product" class="p-img"
-              ><span class="badge badge-hot">Hot</span>🎮</a
-            >
-            <div class="p-body">
-              <span class="p-cat">Graphics Cards</span>
-              <a href="../Layout/routing.php?page=product" class="p-name">RTX 5080 16GB Gaming OC</a>
-              <span class="p-stars">★★★★★</span>
-              <div class="p-foot">
-                <span class="p-price">1,199 <small>JD</small></span>
-                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
-              </div>
-            </div>
-          </article>
-
-          <article class="card p-card">
-            <a href="../Layout/routing.php?page=product" class="p-img"
-              ><span class="badge">New</span>🧠</a
-            >
-            <div class="p-body">
-              <span class="p-cat">Processors</span>
-              <a href="../Layout/routing.php?page=product" class="p-name">Ryzen 9 9950X 16-Core</a>
-              <span class="p-stars">★★★★☆</span>
-              <div class="p-foot">
-                <span class="p-price">549 <small>JD</small></span>
-                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
-              </div>
-            </div>
-          </article>
-
-          <article class="card p-card">
-            <a href="../Layout/routing.php?page=product" class="p-img"
-              ><span class="badge badge-ok">In stock</span>⌨️</a
-            >
-            <div class="p-body">
-              <span class="p-cat">Peripherals</span>
-              <a href="../Layout/routing.php?page=product" class="p-name"
-                >Mechanical RGB Keyboard 75%</a
-              >
-              <span class="p-stars">★★★★★</span>
-              <div class="p-foot">
-                <span class="p-price">89 <small>JD</small></span>
-                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
-              </div>
-            </div>
-          </article>
-
-          <article class="card p-card">
-            <a href="../Layout/routing.php?page=product" class="p-img"
-              ><span class="badge badge-hot">-15%</span>💾</a
-            >
-            <div class="p-body">
-              <span class="p-cat">Storage</span>
-              <a href="../Layout/routing.php?page=product" class="p-name">NVMe Gen5 SSD 2TB</a>
-              <span class="p-stars">★★★★☆</span>
-              <div class="p-foot">
-                <span class="p-price">169 <small>JD</small></span>
-                <a href="../Layout/routing.php?page=login" class="btn btn-primary btn-sm">Add to cart</a>
-              </div>
-            </div>
-          </article>
-        </div>
+        <?php if ($featuredProducts): ?>
+          <div class="grid grid-4" style="margin-top: 40px">
+            <?php foreach ($featuredProducts as $product): ?>
+              <?php
+                $detailsUrl = '../Layout/routing.php?page=product&id=' . (int) $product['id'];
+                $imageUrl = $productImageUrl($product['image_path'] ?? null);
+              ?>
+              <article class="card p-card">
+                <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="p-img">
+                  <?php if ($imageUrl !== ''): ?>
+                    <img class="catalog-product-image" src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                  <?php else: ?>◈<?php endif; ?>
+                </a>
+                <div class="p-body">
+                  <span class="p-cat"><?= htmlspecialchars($product['category_name'], ENT_QUOTES, 'UTF-8') ?></span>
+                  <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="p-name"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a>
+                  <div class="p-foot">
+                    <span class="p-price"><?= number_format((float) $product['price'], 2) ?> <small>JD</small></span>
+                    <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>#purchase" class="btn btn-primary btn-sm">View &amp; buy</a>
+                  </div>
+                </div>
+              </article>
+            <?php endforeach; ?>
+          </div>
+        <?php else: ?>
+          <p class="section-sub" style="margin-top:40px">No products are available yet. <a href="../Layout/routing.php?page=products">Browse the catalog</a></p>
+        <?php endif; ?>
       </div>
     </section>
 
