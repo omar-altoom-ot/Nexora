@@ -23,15 +23,15 @@ $phone = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-$submittedToken = $_POST['csrf_token'] ?? '';
+    $submittedToken = $_POST['csrf_token'] ?? '';
 
-if (
-    !is_string($submittedToken) ||
-    !hash_equals($_SESSION['csrf_token'], $submittedToken)
-) {
-    http_response_code(403);
-    exit('Invalid CSRF token.');
-}
+    if (
+        !is_string($submittedToken) ||
+        !hash_equals($_SESSION['csrf_token'], $submittedToken)
+    ) {
+        http_response_code(403);
+        exit('Invalid CSRF token.');
+    }
 
     $firstName = trim($_POST['first_name'] ?? '');
     $lastName = trim($_POST['last_name'] ?? '');
@@ -68,12 +68,29 @@ if (
                 );
 
                 if ($registered) {
-                    $success = 'Account created successfully!';
 
-                    $firstName = '';
-                    $lastName = '';
-                    $email = '';
-                    $phone = '';
+                    $newCustomer = $customer->findByEmail($email);
+
+                    if ($newCustomer) {
+
+                        session_regenerate_id(true);
+
+                        $_SESSION['customer_id'] = (int) $newCustomer['id'];
+
+                        $_SESSION['customer_name'] =
+                            $newCustomer['first_name'] . ' ' . $newCustomer['last_name'];
+
+                        $_SESSION['user_role'] = 'customer';
+
+                        $postLoginPage = 'home';
+
+                        unset($_SESSION['post_login_page']);
+
+                        header('Location: routing.php?page=' . $postLoginPage);
+                        exit;
+                    } else {
+                        $errors[] = 'Account created, but automatic sign-in failed.';
+                    }
                 } else {
                     $errors[] = 'Unable to create account.';
                 }
