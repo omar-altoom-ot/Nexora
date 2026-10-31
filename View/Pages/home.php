@@ -1,5 +1,13 @@
 <?php
 require_once __DIR__ . '/../../Controllers/CategoryController.php';
+require_once __DIR__ . '/../../Controllers/CouponController.php';
+// ... (after $homeCategories logic)
+$activeCoupons = [];
+try {
+  $activeCoupons = (new CouponController(new Db()))->getPublicActive();
+} catch (Throwable $error) {
+  error_log('Home coupon load failed: ' . $error->getMessage());
+}
 $homeCategories = [];
 try {
   $homeCategories = (new CategoryController())->getAll();
@@ -318,6 +326,56 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </div>
     </section>
+	    <!-- ================= PROMO / COUPONS ================= -->
+    <?php if (!empty($activeCoupons)): ?>
+    <section class="section" style="padding-top: 40px;">
+      <div class="container">
+        <span class="eyebrow">// Player Perks</span>
+        <h2 class="section-title">Unlock exclusive <span class="text-grad">deals</span></h2>
+        <p class="section-sub">Grab these codes before they expire and boost your setup.</p>
+
+        <div class="grid grid-4" style="margin-top: 30px;">
+          <?php foreach (array_slice($activeCoupons, 0, 4) as $coupon): ?>
+            <div class="card" style="padding: 24px; position: relative; overflow: hidden; border-color: rgba(34, 211, 238, 0.4);">
+              <!-- Decorative glow -->
+              <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: var(--cyan); filter: blur(40px); opacity: 0.3;"></div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <span class="badge badge-ok">Active</span>
+                <span style="font-family: var(--font-head); font-size: 1.2rem; color: var(--cyan);">
+                  <?= $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : $coupon->discount_value . ' JD' ?> OFF
+                </span>
+              </div>
+              
+              <h3 style="font-family: var(--font-head); font-size: 1.4rem; letter-spacing: 2px; margin: 10px 0; color: #fff;">
+                <?php if (isset($_SESSION['customer_id'])): ?>
+                    <?= htmlspecialchars($coupon->code) ?>
+                <?php else: ?>
+                    ••••••••
+                <?php endif; ?>
+              </h3>
+              
+              <p class="muted" style="font-size: 0.8rem; margin-bottom: 16px;">
+                Min. order: <b><?= number_format($coupon->min_order_amount, 2) ?> JD</b>
+              </p>
+              
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <?php if (isset($_SESSION['customer_id'])): ?>
+                    <button class="btn btn-primary btn-sm full copy-btn" data-code="<?= htmlspecialchars($coupon->code) ?>">
+                      Copy Code
+                    </button>
+                <?php else: ?>
+                    <a href="../Layout/routing.php?page=login" class="btn btn-ghost btn-sm full" style="border-color: var(--purple);">
+                      Log in to unlock
+                    </a>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+    <?php endif; ?>
 
     <!-- ================= SMART FEATURES ================= -->
     <section class="section">
@@ -366,6 +424,23 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </div>
     </section>
-
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const code = this.getAttribute('data-code');
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = this.innerHTML;
+            this.innerHTML = '✓ Copied!';
+            this.style.background = 'var(--green)';
+            this.style.color = '#000';
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.style.background = '';
+                this.style.color = '';
+            }, 2000);
+        });
+    });
+});
+</script>
     <!-- ================= FOOTER ================= -->
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>

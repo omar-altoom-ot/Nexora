@@ -4,59 +4,75 @@ session_start();
 require_once __DIR__ . '/../../Config/DBconnection.php';
 require_once __DIR__ . '/../../Controllers/orders.php';
 require_once __DIR__ . '/../../Controllers/OrderItemController.php';
+require_once __DIR__ . '/../../Controllers/CouponController.php'; // ADDED
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 1. Get Customer ID (Fallback to 1 for testing)
-    $customerId = $_SESSION['customer_id'] ?? 1; 
-    
-    // 2. Get the address from the hidden input (Populated by Leaflet)
+    $customerId = $_SESSION['customer_id'] ?? 1;
     $address = !empty($_POST['shipping_address']) ? $_POST['shipping_address'] : 'No address provided';
-    
-    // 3. Calculate Total (Hardcoded for now, ideally from Cart)
-    // $totalAmount = '1354.40';
-	// 3. Calculate Total from the hidden inputs sent by checkout.php
-$totalAmount = 0;
-if (isset($_POST['cart_items']) && is_array($_POST['cart_items'])) {
-    foreach ($_POST['cart_items'] as $itemString) {
-        list($pid, $qty, $price) = explode('|', $itemString);
-        $totalAmount += ($qty * $price);
-    }
-}
-$totalAmount = (string)($totalAmount + ($totalAmount * 0.05) + 2.00); // Add tax and delivery
 
-    // 4. Instantiate the Controller
-    $orderController = new OrderController(new Db());
+    // 1. Calculate Subtotal from cart
+    $subtotal = 0;
+    if (isset($_POST['cart_items']) && is_array($_POST['cart_items'])) {
+        foreach ($_POST['cart_items'] as $itemString) {
+            list($pid, $qty, $price) = explode('|', $itemString);
+            $subtotal += ($qty * $price);
+        }
+    }
+
+    // 2. Apply Coupon Logic
+    $discountAmount = 0;
+    $couponId = null;
     
-    // 5. Create the Order
+    if (isset($_SESSION['applied_coupon'])) {
+        $couponId = $_SESSION['applied_coupon']['id'];
+        $couponController = new CouponController(new Db());
+        $coupon = $couponController->getById($couponId);
+        
+        // Double check it's still valid
+        if ($coupon && $coupon->is_active && strtotime($coupon->valid_until) >= strtotime(date('Y-m-d'))) {
+            if ($subtotal >= $coupon->min_order_amount) {
+                if ($coupon->discount_type === 'percentage') {
+                    $discountAmount = $subtotal * ($coupon->discount_value / 100);
+                } else {
+                    $discountAmount = $coupon->discount_value;
+                }
+            }
+        }
+    }
+
+    // Ensure discount doesn't exceed subtotal
+    $discountAmount = min($discountAmount, $subtotal);
+    $discountedSubtotal = $subtotal - $discountAmount;
+
+    // 3. Calculate Tax and Delivery (Tax applied AFTER discount)
+    $tax = $discountedSubtotal * 0.05;
+    $delivery = 2.00;
+    $totalAmount = (string)($discountedSubtotal + $tax + $delivery);
+
+    // 4. Create Order
+    $orderController = new OrderController(new Db());
     $orderId = $orderController->create($customerId, $totalAmount, 'pending', $address);
 
-    // 6. Create the Order Items
-	    // 6. Create the Order Items
+    // 5. Create Order Items
     $itemController = new OrderItemController(new Db());
-
     if (isset($_POST['cart_items']) && is_array($_POST['cart_items'])) {
         foreach ($_POST['cart_items'] as $itemString) {
             list($pid, $qty, $price) = explode('|', $itemString);
             $itemController->create($orderId, (int)$pid, (int)$qty, (float)$price);
         }
     }
-    // $itemController = new OrderItemController(new Db());
-    
-    // // Loop through Cart Session (You need to set this up!)
-    // if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-    //     foreach ($_SESSION['cart'] as $productId => $item) {
-    //         $itemController->create($orderId, $productId, $item['quantity'], $item['price']);
-    //     }
-    // } else {
-    //     // Fallback for testing so the order isn't empty
-    //     $itemController->create($orderId, 1, 1, 599.99);
-    //     $itemController->create($orderId, 6, 1, 104.99);
-    // }
 
-// 7. Clear the cart
+    // 6. Mark Coupon as used
+if ($couponId) {
+        $db = new Db();
+        $db->run_query("UPDATE coupons SET used_count = used_count + 1 WHERE id = ?", [$couponId]);
+    }
+
+    // 7. Clear the cart and applied coupon
     unset($_SESSION['cart']);
+    unset($_SESSION['applied_coupon']);
 
-    // 8. Return JSON Response for the Modal (NO REDIRECT!)
+    // 8. Return JSON
     echo json_encode([
         'status' => 'success',
         'order_id' => $orderId,
@@ -65,6 +81,5 @@ $totalAmount = (string)($totalAmount + ($totalAmount * 0.05) + 2.00); // Add tax
         'date' => date('M d, Y - h:i A')
     ]);
     exit;
-
 }
 ?>

@@ -54,4 +54,35 @@ class CouponController
         $sql = "DELETE FROM coupons WHERE id = ?";
         return $this->db->run_query($sql, [$id])->rowCount() > 0;
     }
+	    // Get coupons that are active and not expired (for the home page)
+    public function getPublicActive(): array
+    {
+        $sql = "SELECT * FROM coupons 
+                WHERE is_active = 1 
+                AND valid_until >= CURDATE() 
+                AND used_count < usage_limit
+                ORDER BY discount_value DESC";
+        $results = $this->db->run_query($sql)->fetchAll();
+        return array_map(fn($row) => new Coupon($row), $results);
+    }
+
+    // Get coupons for a specific user (for the My Coupons page)
+    // Get coupons for a specific user (for the My Coupons page)
+    public function getUserCoupons(int $userId): array
+    {
+        $sql = "SELECT * FROM coupons 
+                WHERE is_active = 1 
+                AND valid_until >= CURDATE() 
+                AND used_count < usage_limit
+                ORDER BY id DESC";
+        $results = $this->db->run_query($sql)->fetchAll();
+        return array_map(fn($row) => new Coupon($row), $results);
+    }
+	    // Find coupon by string code
+    public function getByCode(string $code): ?Coupon
+    {
+        $sql = "SELECT * FROM coupons WHERE code = ? LIMIT 1";
+        $result = $this->db->run_query($sql, [$code])->fetch();
+        return $result ? new Coupon($result) : null;
+    }
 }
