@@ -56,11 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )
             ) {
                 $errors[] = 'Invalid email or password.';
-
             } elseif ((int) ($customer['is_active'] ?? 0) !== 1) {
 
                 $errors[] = 'Your account has been deactivated. Please contact support.';
-
             } else {
 
                 session_regenerate_id(true);
@@ -71,10 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $_SESSION['user_role'] = 'customer';
 
-                $postLoginPage = $_SESSION['post_login_page'] ?? 'account';
+                $postLoginPage = $_SESSION['post_login_page'] ?? 'home';
                 unset($_SESSION['post_login_page']);
-                if (!in_array($postLoginPage, ['account', 'cart'], true)) {
-                    $postLoginPage = 'account';
+                if (!in_array($postLoginPage, ['home', 'account', 'cart'], true)) {
+                    $postLoginPage = 'home';
                 }
 
                 header(
@@ -82,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 exit;
             }
-
         } catch (PDOException $e) {
             error_log($e->getMessage());
             $errors[] = 'Unable to sign in. Please try again later.';
