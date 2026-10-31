@@ -1,10 +1,41 @@
 <?php
+require_once __DIR__ . '/../../Controllers/CategoryController.php';
+require_once __DIR__ . '/../../Controllers/CouponController.php';
+
+$activeCoupons = [];
+try {
+  $activeCoupons = (new CouponController(new Db()))->getPublicActive();
+} catch (Throwable $error) {
+  error_log('Home coupon load failed: ' . $error->getMessage());
+}
+$homeCategories = [];
+try {
+  $homeCategories = (new CategoryController())->getAll();
+} catch (Throwable $error) {
+  error_log('Home category load failed: ' . $error->getMessage());
+}
+$categoryImageUrl = static function (?string $image): string {
+  if (!$image) return '';
+  if (preg_match('~\Ahttps?://~i', $image)) return $image;
+  return '/Nexora/' . ltrim(str_replace('\\', '/', preg_replace('~\A/?Nexora/~i', '', $image)), '/');
+};
+$categoryIcon = static function (string $name): string {
+  $name = strtolower($name);
+  if (str_contains($name, 'laptop')) return '💻';
+  if (str_contains($name, 'peripheral') || str_contains($name, 'accessor')) return '🎧';
+  if (str_contains($name, 'component')) return '⚡';
+  if (str_contains($name, 'pc') || str_contains($name, 'computer')) return '🖥️';
+  return '◈';
+};
 $currentPage = 'home';
 $pageTitle = 'NEXORA — Build Beyond Limits';
 $pageStylesheet = 'landing.css';
 $isAdminPage = false;
 $showStoreFooter = true;
 require_once __DIR__ . '/../Includes/header.php';
+
+// CHANGED: limit to 7 coupons for the home ticker
+$homeCoupons = array_slice($activeCoupons, 0, 7);
 ?>
     <!-- ================= NAVBAR ================= -->
     <?php require __DIR__ . '/../Layout/user_nav.php'; ?>
@@ -42,6 +73,12 @@ require_once __DIR__ . '/../Includes/header.php';
           <div class="ring r2"></div>
           <div class="rig-floor"></div>
 
+          <div class="orbiting-components" aria-hidden="true">
+            <div class="orbit-item orbit-cpu"><img src="../../Assets/Images/home-components/cpu.png" alt="" loading="lazy" /></div>
+            <div class="orbit-item orbit-ram"><img src="../../Assets/Images/home-components/ram.png" alt="" loading="lazy" /></div>
+            <div class="orbit-item orbit-board"><img src="../../Assets/Images/home-components/motherboard.png" alt="" loading="lazy" /></div>
+          </div>
+
           <div class="pc">
             <div class="pc-body"></div>
             <div class="pc-glass">
@@ -63,6 +100,29 @@ require_once __DIR__ . '/../Includes/header.php';
             </div>
           </div>
 
+          <div class="orbit-ring" aria-hidden="true">
+            <div class="floating-part part-cpu">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/cpu.png" alt=""></div>
+              </div>
+            </div>
+            <div class="floating-part part-ram">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/RAM.png" alt=""></div>
+              </div>
+            </div>
+            <div class="floating-part part-board">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/motherboard.png" alt=""></div>
+              </div>
+            </div>
+            <div class="floating-part part-ssd">
+              <div class="floating-part-inner">
+                <div class="part-art"><img src="../../Assets/Images/SSD.png" alt=""></div>
+              </div>
+            </div>
+          </div>
+
           <div class="chip c1"><small>FPS</small><b>240+</b></div>
           <div class="chip c2"><small>GPU temp</small><b>58°C</b></div>
           <div class="chip c3"><small>Compatibility</small><b>100% ✓</b></div>
@@ -73,6 +133,78 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </div>
     </section>
+
+    <script>
+    (function () {
+      function initOrbit() {
+        var rig = document.querySelector('.rig');
+        if (!rig) return;
+        var ring = rig.querySelector('.orbit-ring');
+        if (!ring) return;
+
+        rig.style.setProperty('position', 'relative', 'important');
+        ring.style.setProperty('position', 'absolute', 'important');
+        ring.style.setProperty('top', '0', 'important');
+        ring.style.setProperty('left', '0', 'important');
+        ring.style.setProperty('width', '100%', 'important');
+        ring.style.setProperty('height', '100%', 'important');
+        ring.style.setProperty('margin', '0', 'important');
+        ring.style.setProperty('pointer-events', 'none', 'important');
+
+        var parts = [
+          { el: ring.querySelector('.part-cpu'), angle: -90 },
+          { el: ring.querySelector('.part-ram'), angle: 0 },
+          { el: ring.querySelector('.part-board'), angle: 90 },
+          { el: ring.querySelector('.part-ssd'), angle: 180 }
+        ].filter(function (p) { return !!p.el; });
+
+        parts.forEach(function (p) {
+          p.el.style.setProperty('position', 'absolute', 'important');
+          p.el.style.setProperty('top', '0', 'important');
+          p.el.style.setProperty('left', '0', 'important');
+          p.el.style.setProperty('margin', '0', 'important');
+        });
+
+        var DURATION = 20000;
+        var HALF = 46;
+        var start = performance.now();
+
+        function radiusFor(w) {
+          return Math.max(120, Math.min(w * 0.42, 260));
+        }
+
+        function tick(now) {
+          var w = rig.clientWidth;
+          var h = rig.clientHeight;
+          if (w && h) {
+            var r = radiusFor(w);
+            var cx = w / 2;
+            var cy = h / 2;
+            var revolutions = (now - start) / DURATION;
+            parts.forEach(function (p) {
+              var deg = p.angle + revolutions * 360;
+              var rad = (deg * Math.PI) / 180;
+              var x = cx + r * Math.cos(rad) - HALF;
+              var y = cy + r * Math.sin(rad) - HALF;
+              p.el.style.setProperty(
+                'transform',
+                'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)',
+                'important'
+              );
+            });
+          }
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initOrbit);
+      } else {
+        initOrbit();
+      }
+    })();
+    </script>
 
     <!-- ================= BRANDS MARQUEE ================= -->
     <div class="marquee" aria-hidden="true">
@@ -96,28 +228,27 @@ require_once __DIR__ . '/../Includes/header.php';
           Everything you need to build, upgrade and dominate.
         </p>
 
-        <div class="grid grid-4" style="margin-top: 40px">
-          <a href="../Layout/routing.php?page=products&amp;category=1" class="card cat-card"
-            ><div class="cat-icon">🖥️</div>
-            <h3>Gaming PCs</h3>
-            <p>Prebuilt monsters</p></a
-          >
-          <a href="../Layout/routing.php?page=products&amp;category=2" class="card cat-card"
-            ><div class="cat-icon">⚡</div>
-            <h3>Components</h3>
-            <p>CPU · GPU · RAM · SSD</p></a
-          >
-          <a href="../Layout/routing.php?page=products&amp;category=3" class="card cat-card"
-            ><div class="cat-icon">💻</div>
-            <h3>Laptops</h3>
-            <p>Gaming &amp; creator</p></a
-          >
-          <a href="../Layout/routing.php?page=products&amp;category=4" class="card cat-card"
-            ><div class="cat-icon">🎧</div>
-            <h3>Peripherals</h3>
-            <p>Mice · keyboards · headsets</p></a
-          >
-        </div>
+        <?php if ($homeCategories): ?>
+          <div class="grid grid-4" style="margin-top: 40px">
+            <?php foreach ($homeCategories as $category): ?>
+              <?php $imageUrl = $categoryImageUrl($category['image'] ?? null); ?>
+              <a href="../Layout/routing.php?page=products&amp;category=<?= (int) $category['id'] ?>" class="card cat-card">
+                <div class="cat-icon">
+                  <?php if ($imageUrl !== ''): ?>
+                    <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                    <span class="cat-icon-fallback" hidden><?= $categoryIcon((string) $category['name']) ?></span>
+                  <?php else: ?>
+                    <?= $categoryIcon((string) $category['name']) ?>
+                  <?php endif; ?>
+                </div>
+                <h3><?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') ?></h3>
+                <p><?= (int) $category['product_count'] ?> <?= (int) $category['product_count'] === 1 ? 'product' : 'products' ?></p>
+              </a>
+            <?php endforeach; ?>
+          </div>
+        <?php else: ?>
+          <p class="section-sub" style="margin-top:40px">No categories are available yet.</p>
+        <?php endif; ?>
       </div>
     </section>
 
@@ -130,7 +261,6 @@ require_once __DIR__ . '/../Includes/header.php';
         </h2>
 
         <div class="grid grid-4" style="margin-top: 40px">
-          <!-- Add to cart as guest → /login -->
           <article class="card p-card">
             <a href="../Layout/routing.php?page=product" class="p-img"
               ><span class="badge badge-hot">Hot</span>🎮</a
@@ -196,6 +326,102 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
     </section>
 
+    <!-- ================= PROMO / COUPONS (ROTATING TICKER, UP TO 7) ================= -->
+    <?php if (!empty($homeCoupons)): ?>
+    <style>
+      /* CHANGED: horizontal rotating coupon ticker */
+      .coupon-ticker-wrap {
+        position: relative;
+        overflow: hidden;
+        margin-top: 30px;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+                mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+      }
+      .coupon-ticker {
+        display: flex;
+        gap: 20px;
+        width: max-content;
+        animation: couponScroll 40s linear infinite;
+        will-change: transform;
+      }
+      .coupon-ticker-wrap:hover .coupon-ticker {
+        animation-play-state: paused;
+      }
+      @keyframes couponScroll {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+      }
+      .coupon-tile {
+        width: 300px;
+        flex: 0 0 300px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        border-color: rgba(34, 211, 238, 0.4);
+      }
+      @media (max-width: 600px) {
+        .coupon-tile { width: 240px; flex: 0 0 240px; padding: 18px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .coupon-ticker { animation: none; }
+      }
+    </style>
+
+    <section class="section" style="padding-top: 40px;">
+      <div class="container">
+        <span class="eyebrow">// Player Perks</span>
+        <h2 class="section-title">Unlock exclusive <span class="text-grad">deals</span></h2>
+        <p class="section-sub">Grab these codes before they expire and boost your setup.</p>
+
+        <div class="coupon-ticker-wrap">
+          <div class="coupon-ticker">
+            <?php
+              // CHANGED: render the list twice for a seamless infinite loop
+              for ($loop = 0; $loop < 2; $loop++):
+                foreach ($homeCoupons as $coupon):
+            ?>
+              <div class="card coupon-tile">
+                <!-- Decorative glow -->
+                <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: var(--cyan); filter: blur(40px); opacity: 0.3; pointer-events: none;"></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                  <span class="badge badge-ok">Active</span>
+                  <span style="font-family: var(--font-head); font-size: 1.2rem; color: var(--cyan);">
+                    <?= $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : $coupon->discount_value . ' JD' ?> OFF
+                  </span>
+                </div>
+
+                <h3 style="font-family: var(--font-head); font-size: 1.4rem; letter-spacing: 2px; margin: 10px 0; color: #fff;">
+                  <?php if (isset($_SESSION['customer_id'])): ?>
+                      <?= htmlspecialchars($coupon->code) ?>
+                  <?php else: ?>
+                      ••••••••
+                  <?php endif; ?>
+                </h3>
+
+                <p class="muted" style="font-size: 0.8rem; margin-bottom: 16px;">
+                  Min. order: <b><?= number_format($coupon->min_order_amount, 2) ?> JD</b>
+                </p>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <?php if (isset($_SESSION['customer_id'])): ?>
+                      <button class="btn btn-primary btn-sm full copy-btn" data-code="<?= htmlspecialchars($coupon->code) ?>">
+                        Copy Code
+                      </button>
+                  <?php else: ?>
+                      <a href="../Layout/routing.php?page=login" class="btn btn-ghost btn-sm full" style="border-color: var(--purple);">
+                        Log in to unlock
+                      </a>
+                  <?php endif; ?>
+                </div>
+              </div>
+            <?php endforeach; endfor; ?>
+          </div>
+        </div>
+      </div>
+    </section>
+    <?php endif; ?>
+
     <!-- ================= SMART FEATURES ================= -->
     <section class="section">
       <div class="container">
@@ -244,6 +470,23 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
     </section>
 
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const code = this.getAttribute('data-code');
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = this.innerHTML;
+            this.innerHTML = '✓ Copied!';
+            this.style.background = 'var(--green)';
+            this.style.color = '#000';
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.style.background = '';
+                this.style.color = '';
+            }, 2000);
+        });
+    });
+});
+</script>
     <!-- ================= FOOTER ================= -->
   <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
-

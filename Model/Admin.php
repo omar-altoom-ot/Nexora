@@ -4,8 +4,15 @@
 
 require_once __DIR__ . '/../Config/DBconnection.php';
 
+require_once __DIR__ . '/../Config/DBconnection.php';
+
 class Admin
 {
+    public ?int $id = null;
+    public string $name = '';
+    public string $email = '';
+    public string $password_hash = '';
+
     private Db $db;
 
     public function __construct(Db $db)

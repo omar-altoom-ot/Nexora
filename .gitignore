@@ -1,0 +1,11 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Ignore uploaded product images
+/Assets/Images/products/*
+
+# Keep directory and Apache protection
+!/Assets/Images/products/.gitkeep
+!/Assets/Images/products/.htaccess
