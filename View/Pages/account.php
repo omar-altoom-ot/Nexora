@@ -34,7 +34,9 @@ require_once __DIR__ . '/../Includes/header.php';
           ><a class="active" href="../Layout/routing.php?page=account">Profile overview</a
           >      <a href="../Layout/routing.php?page=my_orders">My orders</a>
 <a href="../Layout/routing.php?page=wishlist">Wishlist</a
-          ><a href="#settings">Account settings</a>
+          >
+		  <a href="../Layout/routing.php?page=my-coupons">My Coupons</a>
+		  <a href="#settings">Account settings</a>
         </aside>
         <section>
           <div class="grid grid-3 account-stats">
