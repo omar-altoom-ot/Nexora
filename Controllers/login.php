@@ -71,8 +71,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $_SESSION['user_role'] = 'customer';
 
+                $postLoginPage = $_SESSION['post_login_page'] ?? 'account';
+                unset($_SESSION['post_login_page']);
+                if (!in_array($postLoginPage, ['account', 'cart'], true)) {
+                    $postLoginPage = 'account';
+                }
+
                 header(
-                    'Location: routing.php?page=account'
+                    'Location: routing.php?page=' . $postLoginPage
                 );
                 exit;
             }

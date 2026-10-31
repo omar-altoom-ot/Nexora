@@ -56,16 +56,22 @@ if ($isProtectedAdminPage) {
 }
 
 // Customer authentication
+$isLoggedInCustomer =
+    isset($_SESSION['customer_id'])
+    && ($_SESSION['user_role'] ?? null) === 'customer';
+
+if ($page === 'checkout' && !$isLoggedInCustomer) {
+    // Keep the PHP session cart intact while the guest signs in, then return them to it.
+    $_SESSION['post_login_page'] = 'cart';
+    header('Location: /Nexora/View/Layout/routing.php?page=login');
+    exit;
+}
+
 $protectedCustomerPages = [
-    'account',
-    'checkout'
+    'account'
 ];
 
 if (in_array($page, $protectedCustomerPages, true)) {
-
-    $isLoggedInCustomer =
-        isset($_SESSION['customer_id'])
-        && ($_SESSION['user_role'] ?? null) === 'customer';
 
     if (!$isLoggedInCustomer) {
         header(

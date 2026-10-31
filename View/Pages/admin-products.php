@@ -511,9 +511,14 @@ require_once __DIR__ . '/../Includes/header.php';
 
     <?php if ($editProduct !== null): ?>
 
+      <div class="admin-product-modal" role="presentation">
+
       <form class="card panel product-create-form" method="POST" enctype="multipart/form-data"
         action="../Layout/routing.php?page=admin-products&amp;mode=edit&amp;id=<?= (int) $editProduct['id'] ?>">
-        <h3>Edit Product #<?= (int) $editProduct['id'] ?></h3>
+        <div class="product-modal-heading">
+          <h3>Edit Product #<?= (int) $editProduct['id'] ?></h3>
+          <a href="../Layout/routing.php?page=admin-products" class="product-modal-close" aria-label="Close edit product">×</a>
+        </div>
         <?php foreach ($editErrors as $error): ?>
           <p style="color: #ef4444;">
             <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
@@ -632,14 +637,21 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
       </form>
 
+      </div>
+
     <?php endif; ?>
 
     <?php if (($_GET['mode'] ?? '') === 'create'): ?>
 
+      <div class="admin-product-modal" role="presentation">
+
       <form class="card panel product-create-form" method="POST" enctype="multipart/form-data"
         action="../Layout/routing.php?page=admin-products&amp;mode=create">
 
-        <h3>Create Product</h3>
+        <div class="product-modal-heading">
+          <h3>Create Product</h3>
+          <a href="../Layout/routing.php?page=admin-products" class="product-modal-close" aria-label="Close create product">×</a>
+        </div>
 
         <?php foreach ($createErrors as $error): ?>
           <p style="color: #ef4444;">
@@ -749,6 +761,8 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
 
       </form>
+
+      </div>
 
     <?php endif; ?>
     <div class="grid grid-4 kpi-grid">
@@ -1022,6 +1036,16 @@ require_once __DIR__ . '/../Includes/header.php';
     </section>
   </div>
 </main>
+<style>
+.admin-product-modal{position:fixed;inset:0;z-index:10020;display:grid;place-items:center;padding:20px;background:rgba(5,3,15,.78);backdrop-filter:blur(7px);overflow-y:auto}
+.admin-product-modal .product-create-form{width:min(720px,100%);max-height:calc(100vh - 40px);overflow-y:auto;margin:auto}
+.product-modal-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.product-modal-heading h3{margin:0}
+.product-modal-close{display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:1.5rem;line-height:1;text-decoration:none}
+.product-modal-close:hover{color:var(--text);border-color:var(--cyan)}
+body:has(.admin-product-modal){overflow:hidden}
+@media(max-width:600px){.admin-product-modal{padding:10px}.admin-product-modal .product-create-form{max-height:calc(100vh - 20px)}}
+</style>
 <!-- SweetAlert2 Library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

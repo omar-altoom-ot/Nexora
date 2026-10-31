@@ -42,4 +42,11 @@ class CartController
 
         return $cart->removeItem($customerId, $productId);
     }
+
+    public function clearCart(int $customerId): bool
+    {
+        $cart = new Cart($this->db);
+
+        return $cart->clearCart($customerId);
+    }
 }
