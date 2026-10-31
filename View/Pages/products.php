@@ -385,11 +385,16 @@ require_once __DIR__ . '/../Includes/header.php';
                         // value as image_path. Normalize common stored path formats
                         // while keeping image references inside the product uploads.
                         $imagePath = str_replace('\\', '/', trim((string) ($product['image_path'] ?? '')));
-                        $imagePath = preg_replace('~^/?Nexora/~i', '', $imagePath);
-                        $imagePath = ltrim($imagePath, '/');
                         $imageUrl = '';
 
-                        if (
+                        if (preg_match('~\Ahttps?://~i', $imagePath)) {
+                            $imageUrl = $imagePath;
+                        }
+
+                        $imagePath = preg_replace('~^/?Nexora/~i', '', $imagePath);
+                        $imagePath = ltrim($imagePath, '/');
+
+                        if ($imageUrl === '' &&
                             str_starts_with($imagePath, 'Assets/Images/products/') &&
                             !str_contains($imagePath, '..')
                         ) {

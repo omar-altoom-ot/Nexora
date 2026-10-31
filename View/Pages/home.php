@@ -31,6 +31,7 @@ try {
 }
 $productImageUrl = static function (?string $image): string {
   $image = trim(str_replace('\\', '/', (string) $image));
+  if (preg_match('~\Ahttps?://~i', $image)) return $image;
   $image = preg_replace('~^/?Nexora/~i', '', $image);
   $image = ltrim($image, '/');
   if (!str_starts_with($image, 'Assets/Images/products/') || str_contains($image, '..')) return '';
