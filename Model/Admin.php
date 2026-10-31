@@ -1,4 +1,8 @@
+
 <?php
+// Abdullah ALqudah
+
+require_once __DIR__ . '/../Config/DBconnection.php';
 
 require_once __DIR__ . '/../Config/DBconnection.php';
 
@@ -23,7 +27,7 @@ class Admin
              FROM admins
              WHERE email = ?
              LIMIT 1",
-            [$email]
+            [strtolower(trim($email))]
         );
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
