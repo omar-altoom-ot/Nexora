@@ -27,6 +27,7 @@ $routes = [
     'admin-order-details' => __DIR__ . '/../Pages/admin-order-details.php',
     'my_orders' => __DIR__ . '/../Pages/my_orders.php',
     'admin-notifications' => __DIR__ . '/../Pages/admin-notifications.php',
+    'my-coupons' => __DIR__ . '/../Pages/my-coupons.php',
 ];
 
 $page = $_GET['page'] ?? 'home';
