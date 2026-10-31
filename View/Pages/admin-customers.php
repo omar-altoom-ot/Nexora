@@ -53,6 +53,12 @@ require_once __DIR__ . '/../Includes/header.php';
       </p>
     <?php endforeach; ?>
 
+    <?php if (!empty($success)): ?>
+      <p style="color: #22c55e;">
+        <?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
+      </p>
+    <?php endif; ?>
+
     <div class="grid grid-3 kpi-grid">
 
       <div class="kpi card">
@@ -83,8 +89,10 @@ require_once __DIR__ . '/../Includes/header.php';
           placeholder="Search name or email..."
         />
 
-        <select class="input">
-          <option>All customers</option>
+        <select class="input" id="customer-status-filter">
+          <option value="all">All customers</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
 
       </div>
@@ -101,6 +109,8 @@ require_once __DIR__ . '/../Includes/header.php';
               <th>ORDERS</th>
               <th>LIFETIME VALUE</th>
               <th>JOINED</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
             </tr>
           </thead>
 
@@ -109,7 +119,7 @@ require_once __DIR__ . '/../Includes/header.php';
             <?php if (empty($customers)): ?>
 
               <tr>
-                <td colspan="6" style="text-align: center;">
+                <td colspan="8" style="text-align: center;">
                   No customers found.
                 </td>
               </tr>
@@ -118,7 +128,13 @@ require_once __DIR__ . '/../Includes/header.php';
 
               <?php foreach ($customers as $customer): ?>
 
-                <tr class="customer-row">
+                <?php
+                  $isActive = (int) $customer['is_active'] === 1;
+                ?>
+
+                <tr
+                  class="customer-row"
+                  data-status="<?= $isActive ? 'active' : 'inactive' ?>">
 
                   <td>
                     <?= htmlspecialchars(
@@ -144,11 +160,66 @@ require_once __DIR__ . '/../Includes/header.php';
                     ) ?>
                   </td>
 
-                  <td>—</td>
+                  <td>
+                    <?= (int) $customer['orders_count'] ?>
+                  </td>
+
+                  <td>
+                    $<?= number_format(
+                      (float) $customer['lifetime_value'],
+                      2
+                    ) ?>
+                  </td>
 
                   <td>—</td>
 
-                  <td>—</td>
+                  <td>
+                    <?php if ($isActive): ?>
+                      <span style="color: #22c55e;">
+                        Active
+                      </span>
+                    <?php else: ?>
+                      <span style="color: #ef4444;">
+                        Inactive
+                      </span>
+                    <?php endif; ?>
+                  </td>
+
+                  <td>
+                    <form
+                      method="POST"
+                      action="/Nexora/View/Layout/routing.php?page=admin-customers"
+                      onsubmit="return confirm('Are you sure you want to change this customer account status?');">
+
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars(
+                          $_SESSION['admin_customers_csrf_token'] ?? '',
+                          ENT_QUOTES,
+                          'UTF-8'
+                        ) ?>">
+
+                      <input
+                        type="hidden"
+                        name="customer_id"
+                        value="<?= (int) $customer['id'] ?>">
+
+                      <input
+                        type="hidden"
+                        name="action"
+                        value="<?= $isActive ? 'deactivate' : 'reactivate' ?>">
+
+                      <button
+                        class="btn btn-ghost btn-sm"
+                        type="submit">
+
+                        <?= $isActive ? 'Deactivate' : 'Reactivate' ?>
+
+                      </button>
+
+                    </form>
+                  </td>
 
                 </tr>
 
@@ -172,23 +243,32 @@ require_once __DIR__ . '/../Includes/header.php';
 document.addEventListener('DOMContentLoaded', function () {
 
     const searchInput = document.getElementById('customer-search');
+    const statusFilter = document.getElementById('customer-status-filter');
     const customerRows = document.querySelectorAll('.customer-row');
 
-    searchInput.addEventListener('input', function () {
+    function filterCustomers() {
 
-        const searchValue = this.value.toLowerCase().trim();
+        const searchValue = searchInput.value.toLowerCase().trim();
+        const selectedStatus = statusFilter.value;
 
         customerRows.forEach(function (row) {
 
             const customerText = row.textContent.toLowerCase();
 
-            row.style.display = customerText.includes(searchValue)
-                ? ''
-                : 'none';
+            const matchesSearch = customerText.includes(searchValue);
+
+            const matchesStatus =
+                selectedStatus === 'all' ||
+                row.dataset.status === selectedStatus;
+
+            row.style.display =
+                matchesSearch && matchesStatus ? '' : 'none';
 
         });
+    }
 
-    });
+    searchInput.addEventListener('input', filterCustomers);
+    statusFilter.addEventListener('change', filterCustomers);
 
 });
 </script>
