@@ -254,7 +254,7 @@ $isLoggedInCustomer = isset($_SESSION['customer_id'])
         </p>
 
         <?php if ($homeCategories): ?>
-          <div class="grid grid-4" style="margin-top: 40px">
+          <div class="grid grid-4 home-featured-grid" style="margin-top: 40px">
             <?php foreach ($homeCategories as $category): ?>
               <?php $imageUrl = $categoryImageUrl($category['image'] ?? null); ?>
               <a href="../Layout/routing.php?page=products&amp;category=<?= (int) $category['id'] ?>" class="card cat-card">
@@ -293,9 +293,9 @@ $isLoggedInCustomer = isset($_SESSION['customer_id'])
                 $imageUrl = $productImageUrl($product['image_path'] ?? null);
               ?>
               <article class="card p-card">
-                <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="p-img">
+                <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="p-img home-featured-image-link">
                   <?php if ($imageUrl !== ''): ?>
-                    <img class="catalog-product-image" src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                    <img class="home-featured-image" src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
                   <?php else: ?>◈<?php endif; ?>
                 </a>
                 <div class="p-body">

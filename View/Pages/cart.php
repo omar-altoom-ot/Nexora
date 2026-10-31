@@ -245,16 +245,6 @@ require_once __DIR__ . '/../Includes/header.php';
 
             <h2>Order summary</h2>
 
-            <div class="coupon">
-                <input class="input"
-                       placeholder="Coupon code"
-                       disabled>
-
-                <button class="btn btn-ghost" disabled>
-                    Apply
-                </button>
-            </div>
-
             <div class="summary-line">
                 <span>Subtotal</span>
                 <b><?= number_format($subtotal, 2) ?> JD</b>
