@@ -80,6 +80,7 @@ CREATE TABLE cart_items (
 	cart_id BIGINT UNSIGNED NOT NULL,
 	product_id BIGINT UNSIGNED NOT NULL,
 	quantity INT UNSIGNED NOT NULL,
+	stock_reserved_quantity INT UNSIGNED NOT NULL DEFAULT 0,
 
 	CONSTRAINT fk_cart_items_cart
 		FOREIGN KEY (cart_id)
@@ -252,3 +253,20 @@ ALTER TABLE products
 ALTER TABLE categories
     ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 	
+CREATE TABLE coupons (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    discount_type ENUM('percentage', 'fixed') NOT NULL DEFAULT 'percentage',
+    discount_value DECIMAL(10,2) NOT NULL,
+    min_order_amount DECIMAL(10,2) DEFAULT 0.00,
+    valid_until DATE NOT NULL,
+    usage_limit INT UNSIGNED DEFAULT 100,
+    used_count INT UNSIGNED DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+
+ALTER TABLE products
+ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1;
+

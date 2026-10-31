@@ -26,6 +26,7 @@ $routes = [
     'wishlist' => __DIR__ . '/../Pages/wishlist.php',
     'admin-order-details' => __DIR__ . '/../Pages/admin-order-details.php',
     'my_orders' => __DIR__ . '/../Pages/my_orders.php',
+    'admin-notifications' => __DIR__ . '/../Pages/admin-notifications.php',
 ];
 
 $page = $_GET['page'] ?? 'home';
@@ -55,16 +56,22 @@ if ($isProtectedAdminPage) {
 }
 
 // Customer authentication
+$isLoggedInCustomer =
+    isset($_SESSION['customer_id'])
+    && ($_SESSION['user_role'] ?? null) === 'customer';
+
+if ($page === 'checkout' && !$isLoggedInCustomer) {
+    // Keep the PHP session cart intact while the guest signs in, then return them to it.
+    $_SESSION['post_login_page'] = 'cart';
+    header('Location: /Nexora/View/Layout/routing.php?page=login');
+    exit;
+}
+
 $protectedCustomerPages = [
-    'account',
-    'checkout'
+    'account'
 ];
 
 if (in_array($page, $protectedCustomerPages, true)) {
-
-    $isLoggedInCustomer =
-        isset($_SESSION['customer_id'])
-        && ($_SESSION['user_role'] ?? null) === 'customer';
 
     if (!$isLoggedInCustomer) {
         header(
@@ -102,6 +109,24 @@ if (in_array($page, $protectedCustomerPages, true)) {
         exit;
     }
 }
+
+
+if ($page === 'products') {
+
+    require_once __DIR__ .
+        '/../../Controllers/CatalogController.php';
+
+    $db = new Db();
+
+    $catalogRepository = new CatalogRepository($db);
+
+    $catalogController = new CatalogController(
+        $catalogRepository
+    );
+
+    $catalogData = $catalogController->index($_GET);
+}
+
 
 // Load requested page
 require $routes[$page];

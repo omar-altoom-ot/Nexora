@@ -54,9 +54,9 @@ class CompareController
 
     public function aiComparison(array $first, array $second, array $needs): array
     {
-        $apiKey = getenv('OPENAI_API_KEY') ?: '';
+        $apiKey = getenv('GCP_API_KEY') ?: '';
         if ($apiKey === '') {
-            throw new RuntimeException('AI is not configured yet. Set OPENAI_API_KEY in the server environment, then restart Apache.');
+            throw new RuntimeException('AI is not configured yet. Set GCP_API_KEY in the server environment, then restart Apache.');
         }
         if (!function_exists('curl_init')) {
             throw new RuntimeException('PHP cURL is required to contact the AI service.');
@@ -71,38 +71,48 @@ class CompareController
             ],
         ];
         $payload = json_encode([
-            'model' => getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini',
-            'instructions' => $system,
-            'input' => json_encode($input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'systemInstruction' => ['parts' => [['text' => $system]]],
+            'contents' => [[
+                'role' => 'user',
+                'parts' => [['text' => json_encode($input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]],
+            ]],
+            'generationConfig' => ['responseMimeType' => 'application/json'],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        $curl = curl_init('https://api.openai.com/v1/responses');
-        curl_setopt_array($curl, [
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKey],
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_TIMEOUT => 45,
-        ]);
-        $raw = curl_exec($curl);
-        $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($curl);
-        curl_close($curl);
+        $response = null;
+        $status = 0;
+        foreach (['gemini-3.8-flash', 'gemini-3.5-flash-lite'] as $model) {
+            $curl = curl_init('https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent');
+            curl_setopt_array($curl, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $apiKey],
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT => 30,
+            ]);
+            $raw = curl_exec($curl);
+            $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $curlErrorNumber = curl_errno($curl);
+            $curlError = curl_error($curl);
+            curl_close($curl);
 
-        if ($raw === false) throw new RuntimeException('Could not reach the AI service: ' . $curlError);
-        $response = json_decode($raw, true);
-        if ($status < 200 || $status >= 300) {
+            $hasFallback = $model !== 'gemini-3.5-flash-lite';
+            if ($raw === false) {
+                if ($hasFallback && $curlErrorNumber === CURLE_OPERATION_TIMEDOUT) continue;
+                throw new RuntimeException('Could not reach the AI service: ' . $curlError);
+            }
+            $response = json_decode($raw, true);
+            if ($status >= 200 && $status < 300) break;
+
             $message = $response['error']['message'] ?? 'The AI service returned an error.';
+            if ($hasFallback && in_array($status, [429, 503], true)) continue;
             throw new RuntimeException($message);
         }
 
-        $text = $response['output_text'] ?? '';
-        if ($text === '' && !empty($response['output'])) {
-            foreach ($response['output'] as $item) {
-                foreach (($item['content'] ?? []) as $content) {
-                    if (($content['type'] ?? '') === 'output_text') $text .= $content['text'] ?? '';
-                }
-            }
+        $text = '';
+        foreach (($response['candidates'][0]['content']['parts'] ?? []) as $part) {
+            $text .= $part['text'] ?? '';
         }
         $analysis = json_decode(trim($text), true);
         if (!is_array($analysis)) throw new RuntimeException('The AI returned an unreadable comparison. Please try again.');

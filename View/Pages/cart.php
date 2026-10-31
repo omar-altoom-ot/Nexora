@@ -7,17 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../../Config/DBconnection.php';
 require_once __DIR__ . '/../../Controllers/CartController.php';
 
-if (
-    !isset($_SESSION['customer_id']) ||
-    ($_SESSION['user_role'] ?? null) !== 'customer'
-) {
-    header('Location: ../Layout/routing.php?page=login');
-    exit;
-}
-
 $db = new Db();
 $cartController = new CartController($db);
-$customerId = (int) $_SESSION['customer_id'];
+$customerId = (int) ($_SESSION['customer_id'] ?? 0);
 
 if (empty($_SESSION['cart_csrf_token'])) {
     $_SESSION['cart_csrf_token'] = bin2hex(random_bytes(32));
@@ -25,6 +17,10 @@ if (empty($_SESSION['cart_csrf_token'])) {
 
 $cartUrl = '../Layout/routing.php?page=cart';
 $error = '';
+$notice = $_SESSION['cart_flash'] ?? '';
+unset($_SESSION['cart_flash']);
+$noticeError = $_SESSION['cart_error_flash'] ?? '';
+unset($_SESSION['cart_error_flash']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['csrf_token'] ?? '';
@@ -33,25 +29,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         !is_string($token) ||
         !hash_equals($_SESSION['cart_csrf_token'], $token)
     ) {
-        http_response_code(403);
         $error = 'Invalid request. Please refresh the page.';
     } else {
         $action = $_POST['action'] ?? '';
-        $productId = filter_var(
-            $_POST['product_id'] ?? null,
-            FILTER_VALIDATE_INT
-        );
-
-        if ($productId === false || $productId === null || $productId <= 0) {
-            $error = 'Invalid product.';
+        $success = false;
+        if ($action === 'clear') {
+            $success = $cartController->clearCart($customerId);
+            if ($success) $_SESSION['cart_flash'] = 'Cart cleared and reserved stock returned.';
         } else {
-            $success = false;
-
-            if ($action === 'remove') {
-                $success = $cartController->removeItem(
-                    $customerId,
-                    $productId
-                );
+            $productId = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
+            if ($productId === false || $productId === null || $productId <= 0) {
+                $error = 'Invalid product.';
+            } elseif ($action === 'remove') {
+                $success = $cartController->removeItem($customerId, $productId);
             } elseif ($action === 'update') {
                 $quantity = filter_var(
                     $_POST['quantity'] ?? null,
@@ -66,15 +56,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
                 }
             }
+        }
 
-            if ($success) {
-                header('Location: ' . $cartUrl);
-                exit;
-            }
-
+        if ($success) {
+            header('Location: ' . $cartUrl);
+            exit;
+        }
+        if ($error === '') {
             $error = 'Could not update your cart. Check the available stock.';
         }
     }
+
+    if ($error !== '') {
+        $_SESSION['cart_error_flash'] = $error;
+    }
+    header('Location: ' . $cartUrl);
+    exit;
 }
 
 $items = $cartController->getItems($customerId);
@@ -108,6 +105,8 @@ require_once __DIR__ . '/../Includes/header.php';
         Shopping <span class="text-grad">cart.</span>
     </h1>
 
+    <?php if ($notice !== ''): ?><p class="status status-green" role="status"><?= htmlspecialchars($notice, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+    <?php if ($noticeError !== ''): ?><p class="status status-red" role="alert"><?= htmlspecialchars($noticeError, ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
     <?php if ($error !== ''): ?>
         <p role="alert">
             <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
@@ -278,6 +277,12 @@ require_once __DIR__ . '/../Includes/header.php';
 
             <?php if (!empty($items)): ?>
 
+                <form method="POST" action="<?= $cartUrl ?>" onsubmit="return confirm('Cancel the entire cart and return reserved stock?')">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['cart_csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="action" value="clear">
+                    <button class="cart-clear-button" type="submit">Cancel entire cart</button>
+                </form>
+
                 <a class="btn btn-primary full"
                    href="../Layout/routing.php?page=checkout">
                     Continue to checkout
@@ -317,5 +322,15 @@ require_once __DIR__ . '/../Includes/header.php';
     <a href="../Layout/routing.php?page=login">Login</a>
     <a href="../Layout/routing.php?page=register">Register</a>
 </nav>
+
+<style>
+.cart-clear-button{display:block;margin:14px auto;padding:4px 0;border:0;background:transparent;color:#fb7185;font:500 .8rem var(--font-body);cursor:pointer}.cart-clear-button:hover{text-decoration:underline}
+</style>
+
+<script>
+window.addEventListener('pageshow', function (event) {
+    if (event.persisted) window.location.reload();
+});
+</script>
 
 <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
