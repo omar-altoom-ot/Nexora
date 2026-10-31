@@ -29,6 +29,15 @@ $chartMonthLabels = [];
 $chartMax = 4.0;
 $chartTickLabels = ['0', '0', '0', '0', '0'];
 $orderStatusTotal = 0;
+$categoryImageUrl = static function (?string $image): string {
+  $image = trim((string) $image);
+  if ($image === '') return '';
+  if (preg_match('~\Ahttps?://~i', $image)) return $image;
+
+  $image = str_replace('\\', '/', $image);
+  $image = preg_replace('~\A/?Nexora/~i', '', $image);
+  return '/Nexora/' . ltrim($image, '/');
+};
 try {
   $categories = (new CategoryController())->getAll();
 } catch (PDOException $e) {
@@ -387,13 +396,13 @@ require_once __DIR__ . '/../Includes/header.php';
             <?php if ($categories): ?>
               <?php foreach ($categories as $category): ?>
                 <?php
-                  $categoryImage = trim((string) ($category['image'] ?? ''));
+                  $categoryImage = $categoryImageUrl($category['image'] ?? null);
                   $categoryName = (string) $category['name'];
                 ?>
                 <a class="card category-admin" href="../Layout/routing.php?page=admin-categories">
                   <div class="category-icon">
                     <?php if ($categoryImage !== ''): ?>
-                      <img src="/Nexora/<?= htmlspecialchars(ltrim($categoryImage, '/'), ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">
+                      <img src="<?= htmlspecialchars($categoryImage, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>◈</span>
                     <?php else: ?>◈<?php endif; ?>
                   </div>
                   <div>
