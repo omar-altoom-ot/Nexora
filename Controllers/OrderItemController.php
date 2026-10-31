@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../Model/OrderItem.php';
+require_once __DIR__ . '/../Config/DBconnection.php'; // Make sure DB is loaded
 
 class OrderItemController
 {
@@ -10,7 +11,6 @@ class OrderItemController
         $this->db = $db;
     }
 
-    // READ: Get items for a specific order
     public function getByOrderId(int $orderId): array
     {
         $sql = "
@@ -23,7 +23,6 @@ class OrderItemController
         return array_map(fn($row) => new OrderItem($row), $results);
     }
 
-    // CREATE: Add an item to an order
     public function create(int $orderId, ?int $productId, int $quantity, float $unitPrice): int
     {
         $this->db->run_query(
