@@ -28,6 +28,8 @@ $routes = [
     'my_orders' => __DIR__ . '/../Pages/my_orders.php',
     'admin-notifications' => __DIR__ . '/../Pages/admin-notifications.php',
     'my-coupons' => __DIR__ . '/../Pages/my-coupons.php',
+    'builder' => __DIR__ . '/../Pages/builder.php',
+
 ];
 
 $page = $_GET['page'] ?? 'home';
