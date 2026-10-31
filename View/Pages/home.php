@@ -59,6 +59,8 @@ require_once __DIR__ . '/../Includes/header.php';
 
 // CHANGED: limit to 7 coupons for the home ticker
 $homeCoupons = array_slice($activeCoupons, 0, 7);
+$isLoggedInCustomer = isset($_SESSION['customer_id'])
+  && ($_SESSION['user_role'] ?? null) === 'customer';
 ?>
     <!-- ================= NAVBAR ================= -->
     <?php require __DIR__ . '/../Layout/user_nav.php'; ?>
@@ -447,15 +449,17 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
     </section>
 
     <!-- ================= CTA ================= -->
-    <section class="section" style="padding-top: 0">
-      <div class="container">
-        <div class="cta-band">
-          <h2>Ready to <span class="text-grad">level up</span>?</h2>
-          <p>Create your account and start building your dream rig today.</p>
-          <a href="../Layout/routing.php?page=register" class="btn btn-primary">Create account</a>
+    <?php if (!$isLoggedInCustomer): ?>
+      <section class="section" style="padding-top: 0">
+        <div class="container">
+          <div class="cta-band">
+            <h2>Ready to <span class="text-grad">level up</span>?</h2>
+            <p>Create your account and start building your dream rig today.</p>
+            <a href="../Layout/routing.php?page=register" class="btn btn-primary">Create account</a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    <?php endif; ?>
 
 <script>
 document.querySelectorAll('.copy-btn').forEach(btn => {
