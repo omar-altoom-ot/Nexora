@@ -80,7 +80,7 @@ $homeCoupons = array_slice($activeCoupons, 0, 7);
           </p>
           <div class="hero-cta">
             <a href="../Layout/routing.php?page=products" class="btn btn-primary">Shop Now</a>
-            <a href="../Layout/routing.php?page=products" class="btn btn-ghost">Build Your PC</a>
+            <a href="../Layout/routing.php?page=builder" class="btn btn-ghost">Build Your PC</a>
           </div>
           <div class="hero-stats">
             <div><strong>12K+</strong><span>Products</span></div>
