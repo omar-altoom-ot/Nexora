@@ -136,6 +136,7 @@ require_once __DIR__ . '/../Includes/header.php';
 <link rel="stylesheet" href="../css/orders.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
     #map { height: 300px; width: 100% !important; border-radius: 10px; border: 1px solid var(--line); margin-bottom: 15px; z-index: 10; position: relative; background: #1a1a1a; }
@@ -302,254 +303,59 @@ require_once __DIR__ . '/../Includes/header.php';
         </div>
     </div>
 
-    <!-- ADDED: Download Receipt Button -->
+    <!-- CHANGED: Download Receipt Button -->
     <button type="button" onclick="downloadReceipt()" class="btn btn-ghost full" style="margin-bottom: 10px; border-color: var(--cyan); color: var(--cyan);">
-        ⬇ Download Receipt
+        ⬇ Download PDF Receipt
     </button>
     <a href="../Layout/routing.php?page=products" class="btn btn-primary full">Continue Shopping</a>
   </div>
 </div>
 
-<script>
-    // Map Initialization
-    const map = L.map('map').setView([31.9539, 35.9106], 12);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
-    const marker = L.marker([31.9539, 35.9106], { draggable: true }).addTo(map);
+<!-- HIDDEN RECEIPT TEMPLATE FOR PDF (CHANGED: position absolute instead of display none) -->
+<div id="receipt-template" style="position: absolute; left: -9999px; top: 0; padding: 40px; color: #333; font-family: Arial, sans-serif; background: #fff; width: 800px;">
+    <div style="text-align: center; margin-bottom: 40px; border-bottom: 3px solid #8b5cf6; padding-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 36px; color: #8b5cf6; letter-spacing: 2px;">NEXORA</h1>
+        <p style="margin: 5px 0 0; font-size: 14px; color: #666;">Build Beyond Limits</p>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
+        <div>
+            <p style="margin: 0; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Billed To:</p>
+            <strong style="font-size: 16px; color: #000; display: block; margin-top: 5px;" id="pdf-customer-name"></strong>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #333;" id="pdf-customer-address"></p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Receipt #:</p>
+            <strong style="font-size: 16px; color: #000; display: block; margin-top: 5px;" id="pdf-order-id"></strong>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #333;" id="pdf-order-date"></p>
+        </div>
+    </div>
 
-    setTimeout(function() { map.invalidateSize(); }, 400);
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+        <thead>
+            <tr style="background: #f8f5ff; text-align: left; color: #333; font-size: 14px;">
+                <th style="padding: 12px; border-bottom: 2px solid #eee;">Description</th>
+                <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 15px 12px; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">Order Total (Cash on Delivery)</td>
+                <td style="padding: 15px 12px; font-size: 16px; font-weight: bold; text-align: right; color: #000; border-bottom: 1px solid #eee;" id="pdf-order-total"></td>
+            </tr>
+        </tbody>
+    </table>
 
-    async function updateAddress(lat, lng) {
-        const display = document.getElementById('address-display');
-        const hiddenInput = document.getElementById('shipping_address');
-        display.innerText = "Loading...";
-        try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2`, { headers: { 'User-Agent': 'NEXORA_Student_Project' } });
-            const data = await response.json();
-            if (data.display_name) {
-                display.innerText = "Selected: " + data.display_name;
-                hiddenInput.value = data.display_name;
-            }
-        } catch (error) {
-            display.innerText = "Error fetching address. Try again.";
-        }
-    }
+    <div style="text-align: center; margin-top: 60px; border-top: 2px solid #eee; padding-top: 20px;">
+        <p style="margin: 0; font-size: 14px; color: #666;">Thank you for shopping with NEXORA!</p>
+        <p style="margin: 5px 0 0; font-size: 12px; color: #999;">For support, contact us at support@nexora.tech</p>
+    </div>
+</div>
 
-    map.on('click', function(e) { marker.setLatLng(e.latlng); updateAddress(e.latlng.lat, e.latlng.lng); });
-    marker.on('dragend', function(e) { const pos = marker.getLatLng(); updateAddress(pos.lat, pos.lng); });
-    updateAddress(31.9539, 35.9106);
-
-    // --- COUPON AJAX LOGIC ---
-    function updateCheckoutCoupon(coupon) {
-        const summary = document.querySelector('.summary');
-        const couponSection = document.getElementById('checkout-coupon-section');
-        const subtotal = Number(summary.dataset.subtotal);
-        const delivery = Number(summary.dataset.delivery);
-        let discount = 0;
-
-        couponSection.replaceChildren();
-
-        if (coupon) {
-            discount = subtotal >= coupon.min_order
-                ? Math.min(coupon.type === 'percentage' ? subtotal * coupon.value / 100 : coupon.value, subtotal)
-                : 0;
-
-            const appliedLine = document.createElement('div');
-            appliedLine.className = 'summary-line';
-            appliedLine.style.cssText = 'color: var(--green); border: 1px dashed var(--green); padding: 10px; border-radius: 8px; background: rgba(57,255,136,0.05); margin-bottom: 10px;';
-
-            const appliedLabel = document.createElement('span');
-            appliedLabel.style.cssText = 'display:flex; align-items:center; gap:5px;';
-            const code = document.createElement('b');
-            code.textContent = coupon.code;
-            appliedLabel.append(code, document.createTextNode(' Applied'));
-
-            const discountLabel = document.createElement('b');
-            discountLabel.className = 'coupon-discount';
-            discountLabel.textContent = `-${discount.toFixed(2)} JD`;
-            appliedLine.append(appliedLabel, discountLabel);
-
-            const removeWrapper = document.createElement('div');
-            removeWrapper.style.cssText = 'text-align: right; margin-bottom: 15px;';
-            const removeButton = document.createElement('button');
-            removeButton.type = 'button';
-            removeButton.textContent = 'Remove Coupon';
-            removeButton.style.cssText = 'background:none; border:none; color:var(--pink); font-size:0.75rem; cursor:pointer; text-decoration:underline;';
-            removeButton.addEventListener('click', removeCouponAjax);
-            removeWrapper.append(removeButton);
-            couponSection.append(appliedLine, removeWrapper);
-        } else {
-            const applyButton = document.createElement('button');
-            applyButton.type = 'button';
-            applyButton.className = 'coupon-btn';
-            applyButton.innerHTML = '<span>🎟️ Apply Coupon Code</span>';
-            const availableCount = document.createElement('span');
-            availableCount.style.cssText = 'font-size: 0.75rem; color: var(--muted);';
-            availableCount.textContent = `${couponSection.dataset.availableCoupons} available`;
-            applyButton.append(availableCount);
-            applyButton.addEventListener('click', function(event) {
-                event.preventDefault();
-                document.getElementById('coupon-modal').style.display = 'flex';
-            });
-            couponSection.append(applyButton);
-        }
-
-        const discountedSubtotal = subtotal - discount;
-        const tax = discountedSubtotal * 0.05;
-        document.getElementById('checkout-tax').textContent = `${tax.toFixed(2)} JD`;
-        document.getElementById('checkout-total').textContent = `${(discountedSubtotal + tax + delivery).toFixed(2)} JD`;
-        document.getElementById('btn-total').textContent = (discountedSubtotal + tax + delivery).toFixed(2);
-    }
-
-    function applyCouponAjax(event, id) {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append('apply_coupon_id', id);
-
-        fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === 'success') {
-                updateCheckoutCoupon(data.coupon);
-                document.getElementById('coupon-modal').style.display = 'none';
-            } else {
-                alert(data.message === 'minimum_not_met'
-                    ? 'Your cart subtotal is below the minimum required for this coupon.'
-                    : 'Error applying coupon: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error applying coupon:', error);
-            alert('Failed to apply coupon. Please try again.');
-        });
-    }
-
-    document.getElementById('manual-coupon-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const code = document.getElementById('manual-coupon-input').value.trim();
-        if(!code) return;
-
-        const formData = new FormData();
-        formData.append('coupon_code', code);
-
-        fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === 'success') {
-                updateCheckoutCoupon(data.coupon);
-                document.getElementById('coupon-modal').style.display = 'none';
-            } else {
-                alert(data.message === 'minimum_not_met'
-                    ? 'Your cart subtotal is below the minimum required for this coupon.'
-                    : 'Invalid coupon: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error applying coupon:', error);
-            alert('Failed to apply coupon. Please try again.');
-        });
-    });
-
-    function removeCouponAjax(event) {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append('remove_coupon', '1');
-
-        fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === 'success') {
-                updateCheckoutCoupon(null);
-            }
-        })
-        .catch(error => {
-            console.error('Error removing coupon:', error);
-            alert('Failed to remove coupon. Please try again.');
-        });
-    }
-
-    // --- CHECKOUT & RECEIPT LOGIC ---
-    let lastOrderData = null;
-
-    document.getElementById('checkout-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('confirm-order-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = 'Processing...';
-        btn.disabled = true;
-
-        const formData = new FormData(this);
-        fetch('../Pages/checkout_process.php', { method: 'POST', body: formData })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                lastOrderData = data; // Store data for receipt
-                document.getElementById('modal-order-id').innerText = '#' + data.order_id;
-                document.getElementById('modal-order-total').innerText = data.total + ' JD';
-                document.getElementById('success-modal').style.display = 'flex';
-                document.querySelector('.summary').style.opacity = '0.5';
-            } else {
-                alert('Something went wrong: ' + (data.message || 'Unknown error'));
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to process order. Please check console.');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-    });
-
-    // NEW: Generate and Download Receipt
-    function downloadReceipt() {
-        if (!lastOrderData) return;
-
-        const customerName = document.getElementById('full_name').value;
-        const deliveryAddress = lastOrderData.address;
-        const orderId = lastOrderData.order_id;
-        const total = lastOrderData.total;
-        const date = lastOrderData.date;
-
-        // Build receipt text
-        let receipt = "=========================================\n";
-        receipt += "            NEXORA STORE RECEIPT         \n";
-        receipt += "=========================================\n\n";
-        receipt += "Order ID: #" + orderId + "\n";
-        receipt += "Date: " + date + "\n";
-        receipt += "Customer: " + customerName + "\n\n";
-        receipt += "Delivery Address:\n" + deliveryAddress + "\n\n";
-        receipt += "-----------------------------------------\n";
-        receipt += "TOTAL AMOUNT: " + total + " JD\n";
-        receipt += "Status: Pending (Cash on Delivery)\n";
-        receipt += "-----------------------------------------\n\n";
-        receipt += "Thank you for shopping with NEXORA!\n";
-        receipt += "For support, contact us at support@nexora.tech\n";
-
-        // Create blob and download
-        const blob = new Blob([receipt], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `NEXORA_Receipt_Order_${orderId}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    }
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- ADDED: jsPDF Library specifically for drawing the receipt -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ADDED: Link to the external JS file -->
+<script src="../js/checkout.js"></script>
 
 <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
