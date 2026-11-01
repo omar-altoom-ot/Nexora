@@ -1,17 +1,16 @@
-
 <?php
 // Abdullah ALqudah
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+  session_start();
 }
 
 $isLoggedInCustomer =
-    isset($_SESSION['customer_id']) &&
-    ($_SESSION['user_role'] ?? null) === 'customer';
+  isset($_SESSION['customer_id']) &&
+  ($_SESSION['user_role'] ?? null) === 'customer';
 
 if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
-    $_SESSION['customer_logout_csrf_token'] = bin2hex(random_bytes(32));
+  $_SESSION['customer_logout_csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>
 
@@ -24,19 +23,23 @@ if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
 
     <nav class="nav-links">
       <a class="<?= $currentPage === 'home' ? 'active' : '' ?>"
-         href="../Layout/routing.php?page=home">
+        href="../Layout/routing.php?page=home">
         Home
       </a>
 
       <a class="<?= in_array($currentPage, ['products', 'product'], true) ? 'active' : '' ?>"
-         href="../Layout/routing.php?page=products">
+        href="../Layout/routing.php?page=products">
         Products
+      </a>
+
+      <a href="../Layout/routing.php?page=home#categories">
+        Categories
       </a>
 
       <!-- <a href="#">PC Builder</a> -->
       <a class="<?= $currentPage === 'builder' ? 'active' : '' ?>" href="../Layout/routing.php?page=builder">PC Builder</a>
       <a class="<?= $currentPage === 'recommendation' ? 'active' : '' ?>"
-         href="../Layout/routing.php?page=recommendation">
+        href="../Layout/routing.php?page=recommendation">
         Recommendations
       </a>
     </nav>
@@ -44,38 +47,36 @@ if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
     <div class="nav-actions">
 
       <a class="icon-btn"
-         href="../Layout/routing.php?page=wishlist"
-         aria-label="Wishlist">
+        href="../Layout/routing.php?page=wishlist"
+        aria-label="Wishlist">
         ♡
       </a>
 
       <a class="icon-btn"
-         href="../Layout/routing.php?page=cart"
-         aria-label="Cart">
+        href="../Layout/routing.php?page=cart"
+        aria-label="Cart">
         🛒
       </a>
 
       <?php if ($isLoggedInCustomer): ?>
 
         <a class="btn btn-primary btn-sm"
-           href="../Layout/routing.php?page=account">
+          href="../Layout/routing.php?page=account">
           My Account
         </a>
 
         <form
           action="/Nexora/Controllers/customer-logout.php"
           method="POST"
-          style="display:inline; margin:0;"
-        >
+          style="display:inline; margin:0;">
           <input
             type="hidden"
             name="csrf_token"
             value="<?= htmlspecialchars(
-                $_SESSION['customer_logout_csrf_token'],
-                ENT_QUOTES,
-                'UTF-8'
-            ) ?>"
-          >
+                      $_SESSION['customer_logout_csrf_token'],
+                      ENT_QUOTES,
+                      'UTF-8'
+                    ) ?>">
 
           <button
             type="submit"
@@ -87,7 +88,7 @@ if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
       <?php else: ?>
 
         <a class="btn btn-primary btn-sm"
-           href="../Layout/routing.php?page=login">
+          href="../Layout/routing.php?page=login">
           Login
         </a>
 
