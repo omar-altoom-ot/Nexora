@@ -136,6 +136,22 @@ Create a customer account from the storefront. The admin sign-in page is availab
 http://localhost/Nexora/View/Layout/routing.php?page=admin-login
 ```
 
+### Google sign-in (optional)
+
+Create a **Web application** OAuth client in [Google Cloud Console](https://console.cloud.google.com/), and add this authorized redirect URI:
+
+```text
+http://localhost/Nexora/google-callback.php
+```
+
+Copy `Config/google-oauth.example.php` to `Config/google-oauth.local.php` and put the client ID and client secret into the copied file. The local config is ignored by Git. The redirect URI must match the one in Google Cloud exactly. The base schema supports Google-only customers with a nullable password hash and a unique Google account ID. For an existing database, run this once if you have not already:
+
+```sql
+ALTER TABLE customers
+  MODIFY password_hash VARCHAR(255) NULL,
+  ADD COLUMN google_id VARCHAR(255) NULL UNIQUE;
+```
+
 ## Optional Gemini comparison
 
 Product comparison works without AI for selecting and viewing products. To enable the AI summary, provide a Gemini API key to the PHP/Apache process as `GCP_API_KEY`, then restart Apache. For XAMPP, one option is to add this to Apache's environment configuration:
