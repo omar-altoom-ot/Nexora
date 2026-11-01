@@ -26,6 +26,16 @@ $saveCategoryImage = static function (array $file): ?string {
   return 'Assets/Images/categories/' . $filename;
 };
 
+$categoryImageUrl = static function (?string $image): string {
+  $image = trim((string) $image);
+  if ($image === '') return '';
+  if (preg_match('~\Ahttps?://~i', $image)) return $image;
+
+  $image = str_replace('\\', '/', $image);
+  $image = preg_replace('~\A/?Nexora/~i', '', $image);
+  return '/Nexora/' . ltrim($image, '/');
+};
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $token = $_POST['csrf_token'] ?? '';
   if (!is_string($token) || !hash_equals($_SESSION['admin_categories_csrf_token'], $token)) { http_response_code(403); exit('Invalid CSRF token.'); }
@@ -79,10 +89,10 @@ require_once __DIR__ . '/../Includes/header.php';
     <div class="admin-welcome"><div><span class="eyebrow">// ORGANIZE THE ARENA</span><h1>Product <span class="text-grad">categories.</span></h1><p class="muted">Keep your catalog clear and easy to explore.</p></div><button class="btn btn-primary btn-sm" type="button" data-category-create>＋ New category</button></div>
     <div class="grid grid-3 category-admin-grid">
       <?php if (!$categories): ?><article class="card category-empty"><h3>No categories yet</h3><p>Create a category to organize your products.</p></article>
-      <?php else: foreach ($categories as $category): $categoryId = (int) $category['id']; $imagePath = trim((string) ($category['image'] ?? '')); ?>
+      <?php else: foreach ($categories as $category): $categoryId = (int) $category['id']; $imagePath = $categoryImageUrl($category['image'] ?? null); ?>
         <article class="card category-admin category-admin-card">
           <div class="category-card-image" data-image-wrap>
-            <?php if ($imagePath !== ''): ?><img src="/Nexora/<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') ?> category image">
+            <?php if ($imagePath !== ''): ?><img src="<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') ?> category image" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="category-image-placeholder" hidden>◈</span>
             <?php else: ?><span class="category-image-placeholder">◈</span><?php endif; ?>
           </div>
           <div class="category-card-copy"><div><h3 class="category-card-name"><?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8') ?></h3><span class="category-product-count"><b><?= (int) $category['product_count'] ?></b> PRODUCTS</span></div>
@@ -104,12 +114,12 @@ require_once __DIR__ . '/../Includes/header.php';
     <div class="modal-actions" style="margin-top:20px"><button class="btn btn-ghost btn-sm" type="button" data-modal-close>Cancel</button><button class="btn btn-primary btn-sm" type="submit">Create category</button></div>
   </form>
 </div></div>
-<?php foreach ($categories as $category): $categoryId = (int) $category['id']; $imagePath = trim((string) ($category['image'] ?? '')); ?>
+<?php foreach ($categories as $category): $categoryId = (int) $category['id']; $imagePath = $categoryImageUrl($category['image'] ?? null); ?>
 <div class="modal-overlay category-modal-overlay" id="edit-category-<?= $categoryId ?>" aria-hidden="true"><div class="modal-content category-modal-content" role="dialog" aria-modal="true" aria-labelledby="edit-category-title-<?= $categoryId ?>">
   <h3 id="edit-category-title-<?= $categoryId ?>">Edit category</h3><form method="post" enctype="multipart/form-data" action="../Layout/routing.php?page=admin-categories">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_categories_csrf_token'], ENT_QUOTES, 'UTF-8') ?>"><input type="hidden" name="action" value="update"><input type="hidden" name="category_id" value="<?= $categoryId ?>">
     <label class="field"><span>Category name</span><textarea class="input" name="name" maxlength="100" required><?= htmlspecialchars($categoryNameOverrides[$categoryId] ?? $category['name'], ENT_QUOTES, 'UTF-8') ?></textarea></label>
-    <label class="category-image-picker"><input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" data-image-preview><span>Click to change image</span><?php if ($imagePath !== ''): ?><img src="/Nexora/<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>" alt="Current category image"><?php else: ?><img alt="Image preview" hidden><?php endif; ?></label>
+    <label class="category-image-picker"><input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" data-image-preview><span>Click to change image</span><?php if ($imagePath !== ''): ?><img src="<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>" alt="Current category image" onerror="this.hidden=true"><?php else: ?><img alt="Image preview" hidden><?php endif; ?></label>
     <div class="modal-actions" style="margin-top:20px"><button class="btn btn-ghost btn-sm" type="button" data-modal-close>Cancel</button><button class="btn btn-primary btn-sm" type="submit">Save changes</button></div>
   </form>
 </div></div>

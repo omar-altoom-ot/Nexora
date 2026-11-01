@@ -8,3 +8,16 @@
 .builder-preview strong{color:#f5faff;font-size:14px;line-height:1.5}
 .builder-preview div{color:#48dfd6;font-size:11px;letter-spacing:2px;font-weight:700}
 @media(max-width:720px){.builder-scene-3d{min-height:390px}}
+
+/* Compatibility checker — appended to preserve existing builder styling */
+.builder-compat{margin-top:22px;border-top:1px solid #34455d;padding-top:18px}
+.builder-compat h3{font-size:15px;margin:0 0 12px;color:#f0f6ff}
+.builder-compat-status{font-size:12px;line-height:1.5;padding:11px;border-radius:9px;background:rgba(135,150,175,.12);border:1px solid #45536b}
+.builder-compat-status[data-state="incompatible"]{color:#ffb0b0;border-color:#9e4848}
+.builder-compat-status[data-state="compatible"]{color:#60e9c8;border-color:#288c75}
+.builder-compat-checks{display:grid;gap:8px;margin-top:12px}
+.builder-compat-item{padding:10px;border-radius:9px;background:#091626;border-left:3px solid #8594aa}
+.builder-compat-item[data-state="compatible"]{border-left-color:#48dcb6}
+.builder-compat-item[data-state="incompatible"]{border-left-color:#ff6b75}
+.builder-compat-item strong,.builder-compat-item small{display:block;font-size:12px}
+.builder-compat-item small{color:#aabbd1;margin-top:5px;line-height:1.45}

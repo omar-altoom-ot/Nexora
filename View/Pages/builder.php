@@ -55,14 +55,19 @@ require __DIR__ . '/../Layout/user_nav.php';
         <div id="builder-viewport" class="builder-viewport"></div>
         <div class="builder-3d-hint">Drag to rotate · Scroll to zoom</div>
       </div>
-      <p class="builder-disclaimer">Visual installation is illustrative, not to scale. Hardware compatibility is not verified yet.</p>
+      <p class="builder-disclaimer">Visual installation is illustrative, not to scale. Compatibility checks are preliminary and depend on available product specifications.</p>
     </section>
     <aside class="builder-panel builder-summary">
       <h2>Your build</h2>
       <div id="builder-selected" class="builder-selected"><p class="muted">No components selected yet.</p></div>
       <div class="builder-total"><span>Estimated total</span><strong id="builder-total">0.00 JD</strong></div>
       <button type="button" id="builder-reset" class="btn btn-ghost">Reset build</button>
-      <p class="builder-disclaimer">Compatibility: Pending technical specifications.</p>
+      <section class="builder-compat" aria-label="Compatibility checker">
+        <h3>Compatibility Checker</h3>
+        <div id="builder-compat-status" class="builder-compat-status" role="status" aria-live="polite">Choose components to check compatibility.</div>
+        <div id="builder-compat-checks" class="builder-compat-checks"></div>
+        <p class="builder-disclaimer">Unknown means specifications are missing. Passing checks do not guarantee full system compatibility.</p>
+      </section>
     </aside>
   </div>
 </main>

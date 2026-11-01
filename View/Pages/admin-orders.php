@@ -1,17 +1,13 @@
 <?php
 $currentPage = 'admin-orders';
 $pageTitle = 'Orders - NEXORA Admin';
-$pageStylesheet = 'pages.css'; 
+$pageStylesheet = 'pages.css';
 $isAdminPage = true;
 $showStoreFooter = false;
 
-// 1. Include the Database class
 require_once __DIR__ . '/../../Config/DBconnection.php';
-
-// 2. Include the Order class
 require_once __DIR__ . '/../../Controllers/orders.php';
 
-// 3. Build connection
 $orderController = new OrderController(new Db());
 
 // Handle Admin Cancel
@@ -47,11 +43,12 @@ function badgeClass(string $status): string {
     };
 }
 
-// 4. Include the HTML header
 require_once __DIR__ . '/../Includes/header.php';
 ?>
 
-<!-- 5. Add the Orders-specific CSS file right after the header -->
+<!-- SweetAlert2 Library -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <link rel="stylesheet" href="../css/orders.css" />
 
 <?php require __DIR__ . '/../Layout/admin_nav.php'; ?>
@@ -62,7 +59,7 @@ require_once __DIR__ . '/../Includes/header.php';
       <h2>Orders</h2>
     </div>
     <div class="admin-user">
-      <span class="live-dot"></span><span>System live</span>
+      <span class="live-dot"></span><span>System live (Auto-refreshing)</span>
       <a class="admin-avatar" href="../Layout/routing.php?page=admin-profile">AD</a>
     </div>
   </header>
@@ -78,7 +75,7 @@ require_once __DIR__ . '/../Includes/header.php';
 
     <section class="card panel">
       <!-- Search and Filter Toolbar -->
-      <form method="get" action="../Layout/routing.php" class="table-toolbar">
+      <form method="get" action="../Layout/routing.php" class="table-toolbar" id="filter-form">
         <input type="hidden" name="page" value="admin-orders">
 
         <input class="input" name="q" value="<?= htmlspecialchars($search) ?>"
@@ -97,7 +94,7 @@ require_once __DIR__ . '/../Includes/header.php';
       </form>
 
       <!-- Data Table -->
-      <div class="table-wrap">
+      <div class="table-wrap" id="orders-table-container">
         <table id="ordersTable">
           <thead>
             <tr>
@@ -123,12 +120,9 @@ require_once __DIR__ . '/../Includes/header.php';
                 <td>
                   <div class="action-buttons">
                     <a href="../Layout/routing.php?page=admin-order-details&id=<?= (int)$o->id ?>">View →</a>
-                    
+
                     <?php if ($o->status !== 'cancelled' && $o->status !== 'delivered'): ?>
-                      <!-- We pass the Order ID to the JS function -->
                       <button type="button" class="btn-cancel-text" onclick="openModal(<?= (int)$o->id ?>)">Cancel</button>
-                      
-                      <!-- The hidden form that will be submitted by the modal -->
                       <form id="cancel-form-<?= (int)$o->id ?>" method="POST" style="display:none;">
                           <input type="hidden" name="admin_cancel_id" value="<?= (int)$o->id ?>">
                       </form>
@@ -142,7 +136,6 @@ require_once __DIR__ . '/../Includes/header.php';
       </div>
 
       <?php
-      // Build the base URL properly so pagination works with the routing system
       $baseUrl = '../Layout/routing.php?page=admin-orders'
                . '&status=' . urlencode($status)
                . '&q='      . urlencode($search);
@@ -179,7 +172,6 @@ require_once __DIR__ . '/../Includes/header.php';
   </div>
 </div>
 
-<!-- Export to CSV Script & Modal Logic -->
 <script>
 // --- Modal Logic ---
 const modal = document.getElementById('cancel-modal');
@@ -187,22 +179,20 @@ let currentFormId = null;
 
 function openModal(orderId) {
     currentFormId = 'cancel-form-' + orderId;
-    modal.style.display = 'flex'; 
+    modal.style.display = 'flex';
 }
 
 function closeModal() {
-    modal.style.display = 'none'; 
+    modal.style.display = 'none';
     currentFormId = null;
 }
 
-// When the user clicks "Yes, Cancel" in the modal
 document.getElementById('confirm-cancel-btn').addEventListener('click', function() {
     if (currentFormId) {
-        document.getElementById(currentFormId).submit(); 
+        document.getElementById(currentFormId).submit();
     }
 });
 
-// Close modal if user clicks outside the box
 modal.addEventListener('click', function(e) {
     if (e.target === modal) {
         closeModal();
@@ -213,11 +203,11 @@ modal.addEventListener('click', function(e) {
 function exportTableToCSV(filename) {
     var csv = [];
     var rows = document.querySelectorAll("#ordersTable tr");
-    
+
     for (var i = 0; i < rows.length; i++) {
         var row = [], cols = rows[i].querySelectorAll("td, th");
-        
-        for (var j = 0; j < cols.length - 1; j++) { // -1 ignores the "Action" column
+
+        for (var j = 0; j < cols.length - 1; j++) {
             var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").replace(/(\s\s)/gm, " ");
             data = data.replace(/"/g, '""');
             row.push('"' + data + '"');
@@ -234,6 +224,51 @@ function exportTableToCSV(filename) {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
+
+// --- SILENT AUTO-REFRESH TABLE LOGIC ---
+setInterval(function() {
+    if (document.activeElement.tagName === 'INPUT') return; 
+
+    fetch(window.location.href)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTable = doc.querySelector('#orders-table-container');
+            const currentTable = document.querySelector('#orders-table-container');
+            
+            if (newTable && currentTable) {
+                currentTable.innerHTML = newTable.innerHTML;
+            }
+        })
+        .catch(err => console.error('Auto-refresh failed:', err));
+}, 10000); // 10 seconds
+
+// --- LIVE NOTIFICATION POLLING (No Reload) ---
+setInterval(function() {
+    // Point to routing.php with the new API param
+    const apiUrl = '../Layout/routing.php?check_notifications=1';
+    
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Show SweetAlert Toast
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 6000,
+                    timerProgressBar: true,
+                    background: '#15102a',
+                    color: '#f9f5ff'
+                });
+            }
+        })
+        .catch(err => console.error('Notification check failed:', err));
+}, 5000); // Check every 5 seconds
 </script>
 
 <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
