@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1480" viewBox="0 0 1920 1480" role="img" aria-labelledby="title description">
+  <title id="title">خارطة تدفق مشروع NEXORA</title>
+  <desc id="description">مخطط معماري يوضح انتقال الطلب من المتصفح إلى توجيه PHP، ثم صفحات المتجر والإدارة، وحدات التحكم والنماذج وقاعدة بيانات MySQL، مع تكاملات Google وGemini وOpenStreetMap.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#090716"/><stop offset=".55" stop-color="#0b0a1b"/><stop offset="1" stop-color="#10102a"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#875cff"/><stop offset="1" stop-color="#20c8e9"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17132d"/><stop offset="1" stop-color="#100e22"/></linearGradient>
+    <linearGradient id="store" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#171532"/><stop offset="1" stop-color="#10152a"/></linearGradient>
+    <linearGradient id="admin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17132f"/><stop offset="1" stop-color="#171022"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="10" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 .25  0 0 0 0 .18  0 0 0 0 .8  0 0 0 .24 0"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#42d9ed"/></marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#9c78ff"/></marker>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#8276cc" stroke-opacity=".055" stroke-width="1"/></pattern>
+    <style>
+      text{font-family:Cairo,"Segoe UI",Arial,sans-serif;fill:#eeeaff}
+      .title{font-size:42px;font-weight:800;letter-spacing:.2px}
+      .subtitle{font-size:18px;fill:#aaa4cf}
+      .kicker{font-size:13px;font-weight:700;letter-spacing:3px;fill:#36d8ed}
+      .section{font-size:22px;font-weight:800}
+      .node-title{font-size:17px;font-weight:750}
+      .body{font-size:14px;fill:#c0badb}
+      .small{font-size:12px;fill:#9791b8}
+      .tiny{font-size:11px;fill:#8e89ad}
+      .code{font-family:Consolas,"Courier New",monospace;font-size:12px;fill:#80e5f1}
+      .card{fill:#17142b;stroke:#39305f;stroke-width:1.4}
+      .node{fill:#141229;stroke:#40366a;stroke-width:1.3}
+      .store-card{fill:#12172a;stroke:#30445e;stroke-width:1.1}
+      .admin-card{fill:#191326;stroke:#503c67;stroke-width:1.1}
+      .line{fill:none;stroke:#42d9ed;stroke-width:2.2;marker-end:url(#arrowCyan)}
+      .line-purple{fill:none;stroke:#9c78ff;stroke-width:2.2;marker-end:url(#arrowPurple)}
+      .dash{fill:none;stroke:#a78bfa;stroke-width:1.8;stroke-dasharray:7 7;marker-end:url(#arrowPurple);opacity:.9}
+    </style>
+  </defs>
+
+  <rect width="1920" height="1480" fill="url(#bg)"/>
+  <rect width="1920" height="1480" fill="url(#grid)"/>
+  <circle cx="1650" cy="90" r="180" fill="#763dff" opacity=".07" filter="url(#glow)"/>
+  <circle cx="185" cy="1120" r="210" fill="#14d4e7" opacity=".045" filter="url(#glow)"/>
+
+  <text x="76" y="54" class="kicker">NEXORA / SYSTEM MAP</text>
+  <text x="1844" y="87" text-anchor="start" direction="rtl" class="title">خارطة تدفّق مشروع NEXORA</text>
+  <text x="1844" y="121" text-anchor="start" direction="rtl" class="subtitle">من المتصفح إلى المتجر ولوحة الإدارة، ثم إلى قاعدة البيانات والخدمات الخارجية</text>
+  <rect x="76" y="145" width="1768" height="3" rx="2" fill="url(#accent)" opacity=".8"/>
+
+  <!-- Request path -->
+  <text x="1844" y="185" text-anchor="start" direction="rtl" class="kicker">١ / دخول الطلب</text>
+  <g>
+    <rect x="76" y="205" width="255" height="118" rx="18" class="node"/>
+    <circle cx="112" cy="246" r="15" fill="#211c45" stroke="#8b6cff"/>
+    <path d="M104 246h16M112 238v16" stroke="#dcd4ff" stroke-width="2"/>
+    <text x="303" y="248" text-anchor="start" direction="rtl" class="node-title">الزائر / العميل / الأدمن</text>
+    <text x="303" y="278" text-anchor="start" direction="rtl" class="body">يتصفح أو يرسل إجراءً</text>
+    <text x="303" y="301" text-anchor="start" direction="rtl" class="small">Browser · Session cookies</text>
+  </g>
+  <path d="M331 264H385" class="line"/>
+  <g>
+    <rect x="390" y="205" width="325" height="118" rx="18" class="node"/>
+    <text x="682" y="242" text-anchor="start" direction="rtl" class="node-title">واجهة الموقع</text>
+    <text x="682" y="270" text-anchor="start" direction="rtl" class="body">PHP Views · HTML · CSS · JavaScript</text>
+    <text x="682" y="298" text-anchor="start" direction="rtl" class="small">صفحات المتجر والإدارة</text>
+  </g>
+  <path d="M715 264H769" class="line"/>
+  <g>
+    <rect x="774" y="195" width="390" height="138" rx="20" fill="url(#panel)" stroke="#8061ef" stroke-width="1.8" filter="url(#glow)"/>
+    <text x="1136" y="231" text-anchor="start" direction="rtl" class="node-title">نقطة الدخول والتوجيه</text>
+    <text x="813" y="266" class="code">index.php</text>
+    <path d="M900 262h45" stroke="#6a6389" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+    <text x="965" y="266" class="code">routing.php</text>
+    <text x="1136" y="302" text-anchor="start" direction="rtl" class="small">يتحقق من المسار ويحمّل الصفحة المطلوبة</text>
+  </g>
+  <path d="M1164 264H1213" class="line-purple"/>
+  <g>
+    <rect x="1218" y="205" width="320" height="118" rx="18" class="node"/>
+    <text x="1507" y="244" text-anchor="start" direction="rtl" class="node-title">جلسة وصلاحيات</text>
+    <text x="1507" y="273" text-anchor="start" direction="rtl" class="body">Customer session · Admin guard</text>
+    <text x="1507" y="300" text-anchor="start" direction="rtl" class="small">CSRF للحركات الحساسة</text>
+  </g>
+  <path d="M1538 264H1590" class="line-purple"/>
+  <g>
+    <rect x="1595" y="205" width="249" height="118" rx="18" class="node"/>
+    <text x="1818" y="244" text-anchor="start" direction="rtl" class="node-title">اختيار المسار</text>
+    <text x="1818" y="273" text-anchor="start" direction="rtl" class="body">Storefront / Admin</text>
+    <text x="1818" y="300" text-anchor="start" direction="rtl" class="small">404 · 403 عند الحاجة</text>
+  </g>
+
+  <!-- Branch connectors behind panels -->
+  <path d="M1718 323V365H510V402" class="line"/>
+  <path d="M1718 323V365H1430V402" class="line-purple"/>
+
+  <!-- Storefront -->
+  <g>
+    <rect x="76" y="402" width="875" height="405" rx="24" fill="url(#store)" stroke="#3b4570" stroke-width="1.6"/>
+    <text x="914" y="443" text-anchor="start" direction="rtl" class="section">المتجر وتجربة العميل</text>
+    <text x="112" y="443" class="kicker">STOREFRONT</text>
+    <rect x="103" y="468" width="260" height="130" rx="15" class="store-card"/>
+    <text x="339" y="500" text-anchor="start" direction="rtl" class="node-title">استكشاف المنتجات</text>
+    <text x="339" y="530" text-anchor="start" direction="rtl" class="body">الرئيسية · الكتالوج · التصنيفات</text>
+    <text x="339" y="557" text-anchor="start" direction="rtl" class="small">بحث · ترتيب · نطاق السعر</text>
+    <text x="126" y="580" class="code">CatalogController</text>
+
+    <rect x="379" y="468" width="260" height="130" rx="15" class="store-card"/>
+    <text x="615" y="500" text-anchor="start" direction="rtl" class="node-title">تفاصيل المنتج</text>
+    <text x="615" y="530" text-anchor="start" direction="rtl" class="body">صور · مخزون · تقييمات</text>
+    <text x="615" y="557" text-anchor="start" direction="rtl" class="small">مقارنة ومراجعات المنتجات</text>
+    <text x="402" y="580" class="code">Product · Review</text>
+
+    <rect x="655" y="468" width="269" height="130" rx="15" class="store-card"/>
+    <text x="900" y="500" text-anchor="start" direction="rtl" class="node-title">حساب العميل</text>
+    <text x="900" y="530" text-anchor="start" direction="rtl" class="body">تسجيل · دخول · الملف الشخصي</text>
+    <text x="900" y="557" text-anchor="start" direction="rtl" class="small">جلسة العميل تحفظ الوجهة</text>
+    <text x="678" y="580" class="code">Customer · Google OAuth</text>
+
+    <rect x="103" y="619" width="260" height="151" rx="15" class="store-card"/>
+    <text x="339" y="652" text-anchor="start" direction="rtl" class="node-title">السلة والمفضلة</text>
+    <text x="339" y="681" text-anchor="start" direction="rtl" class="body">سلة مرتبطة بالجلسة</text>
+    <text x="339" y="708" text-anchor="start" direction="rtl" class="small">دمج السلة بعد تسجيل الدخول</text>
+    <text x="126" y="746" class="code">Cart · Wishlist</text>
+
+    <rect x="379" y="619" width="260" height="151" rx="15" class="store-card"/>
+    <text x="615" y="652" text-anchor="start" direction="rtl" class="node-title">PC Builder</text>
+    <text x="615" y="681" text-anchor="start" direction="rtl" class="body">اختيار القطع والميزانية</text>
+    <text x="615" y="708" text-anchor="start" direction="rtl" class="small">معاينة Three.js ثلاثية الأبعاد</text>
+    <text x="402" y="746" class="code">builder.js · builder-3d.js</text>
+
+    <rect x="655" y="619" width="269" height="151" rx="15" class="store-card"/>
+    <text x="900" y="652" text-anchor="start" direction="rtl" class="node-title">إتمام الشراء</text>
+    <text x="900" y="681" text-anchor="start" direction="rtl" class="body">دخول مطلوب · كوبون · عنوان</text>
+    <text x="900" y="708" text-anchor="start" direction="rtl" class="small">طلب · عناصر · تسجيل الدفع</text>
+    <text x="678" y="746" class="code">checkout_process.php</text>
+  </g>
+
+  <!-- Admin -->
+  <g>
+    <rect x="990" y="402" width="854" height="405" rx="24" fill="url(#admin)" stroke="#634374" stroke-width="1.6"/>
+    <text x="1808" y="443" text-anchor="start" direction="rtl" class="section">لوحة الإدارة</text>
+    <text x="1026" y="443" class="kicker">ADMIN CONSOLE</text>
+    <rect x="1017" y="468" width="252" height="130" rx="15" class="admin-card"/>
+    <text x="1245" y="501" text-anchor="start" direction="rtl" class="node-title">نظرة عامة</text>
+    <text x="1245" y="532" text-anchor="start" direction="rtl" class="body">مبيعات · طلبات · مخزون</text>
+    <text x="1040" y="579" class="code">admin-overview</text>
+
+    <rect x="1289" y="468" width="252" height="130" rx="15" class="admin-card"/>
+    <text x="1517" y="501" text-anchor="start" direction="rtl" class="node-title">الكتالوج</text>
+    <text x="1517" y="532" text-anchor="start" direction="rtl" class="body">منتجات · فئات · صور</text>
+    <text x="1312" y="579" class="code">Product · Category</text>
+
+    <rect x="1561" y="468" width="256" height="130" rx="15" class="admin-card"/>
+    <text x="1793" y="501" text-anchor="start" direction="rtl" class="node-title">إدارة الطلبات</text>
+    <text x="1793" y="532" text-anchor="start" direction="rtl" class="body">الحالة · التفاصيل · الإلغاء</text>
+    <text x="1584" y="579" class="code">OrderController</text>
+
+    <rect x="1017" y="619" width="252" height="151" rx="15" class="admin-card"/>
+    <text x="1245" y="652" text-anchor="start" direction="rtl" class="node-title">العملاء</text>
+    <text x="1245" y="682" text-anchor="start" direction="rtl" class="body">عرض · تفعيل · تعطيل</text>
+    <text x="1040" y="746" class="code">CustomerController</text>
+
+    <rect x="1289" y="619" width="252" height="151" rx="15" class="admin-card"/>
+    <text x="1517" y="652" text-anchor="start" direction="rtl" class="node-title">الكوبونات</text>
+    <text x="1517" y="682" text-anchor="start" direction="rtl" class="body">إنشاء · تحقق · استخدام</text>
+    <text x="1312" y="746" class="code">CouponController</text>
+
+    <rect x="1561" y="619" width="256" height="151" rx="15" class="admin-card"/>
+    <text x="1793" y="652" text-anchor="start" direction="rtl" class="node-title">الإشعارات</text>
+    <text x="1793" y="682" text-anchor="start" direction="rtl" class="body">مراقبة وإدارة المتجر</text>
+    <text x="1584" y="746" class="code">NotificationController</text>
+  </g>
+
+  <!-- Both branches flow to backend -->
+<path d="M515 807V850H280" fill="none" stroke="#42d9ed" stroke-width="2.2"/>
+<path d="M1417 807V850H280" fill="none" stroke="#9c78ff" stroke-width="2.2"/>
+<path d="M280 850V893" class="line"/>
+  <text x="1844" y="865" text-anchor="start" direction="rtl" class="kicker">٢ / منطق الأعمال والبيانات</text>
+
+  <g>
+    <rect x="76" y="893" width="430" height="218" rx="20" class="node"/>
+    <text x="470" y="934" text-anchor="start" direction="rtl" class="section">Controllers</text>
+    <text x="470" y="969" text-anchor="start" direction="rtl" class="body">تتحقق من المدخلات وتنفذ إجراءات الصفحات</text>
+    <text x="111" y="1006" class="code">Catalog · Product · Cart · Order</text>
+    <text x="111" y="1034" class="code">Customer · Coupon · Review · Admin</text>
+    <text x="470" y="1080" text-anchor="start" direction="rtl" class="small">من المتجر ولوحة الإدارة</text>
+  </g>
+  <path d="M506 1002H565" class="line"/>
+  <g>
+    <rect x="570" y="893" width="420" height="218" rx="20" class="node"/>
+    <text x="954" y="934" text-anchor="start" direction="rtl" class="section">Models &amp; Repositories</text>
+    <text x="954" y="969" text-anchor="start" direction="rtl" class="body">تمثل بيانات المشروع وتنفذ استعلامات الدومين</text>
+    <text x="605" y="1006" class="code">Customer · Product · Order · Cart</text>
+    <text x="605" y="1034" class="code">CatalogRepository · ProductRepository</text>
+    <text x="954" y="1080" text-anchor="start" direction="rtl" class="small">عزل التعامل مع البيانات عن العرض</text>
+  </g>
+  <path d="M990 1002H1045" class="line"/>
+  <g>
+    <rect x="1050" y="893" width="265" height="218" rx="20" fill="#15162d" stroke="#337484" stroke-width="1.5"/>
+    <text x="1281" y="934" text-anchor="start" direction="rtl" class="section">PDO / Db</text>
+    <text x="1281" y="970" text-anchor="start" direction="rtl" class="body">اتصال واحد بقاعدة البيانات</text>
+    <text x="1080" y="1011" class="code">prepare()</text>
+    <text x="1080" y="1040" class="code">run_query()</text>
+    <text x="1281" y="1080" text-anchor="start" direction="rtl" class="small">Config/DBconnection.php</text>
+  </g>
+  <path d="M1315 1002H1370" class="line"/>
+  <g>
+    <rect x="1375" y="893" width="469" height="218" rx="20" fill="#11182c" stroke="#37c8db" stroke-width="1.7"/>
+    <text x="1810" y="934" text-anchor="start" direction="rtl" class="section">MySQL / MariaDB</text>
+    <text x="1810" y="969" text-anchor="start" direction="rtl" class="body">المخزن الدائم لحالة المتجر</text>
+    <text x="1410" y="1006" class="code">customers · admins · products · categories</text>
+    <text x="1410" y="1034" class="code">carts · orders · payments · reviews</text>
+    <text x="1810" y="1080" text-anchor="start" direction="rtl" class="small">Model/Database.sql</text>
+  </g>
+
+  <!-- Optional integrations and assets -->
+  <text x="1844" y="1162" text-anchor="start" direction="rtl" class="kicker">٣ / تكاملات وملفات مساندة</text>
+  <path d="M795 598V825H132V1194" class="dash"/>
+  <path d="M790 770V1194" class="dash"/>
+  <path d="M782 697V830H1790V1194" class="dash"/>
+  <g>
+    <rect x="76" y="1192" width="1768" height="203" rx="22" fill="url(#panel)" stroke="#45366e" stroke-width="1.4"/>
+    <rect x="101" y="1220" width="490" height="118" rx="15" class="store-card"/>
+    <text x="563" y="1255" text-anchor="start" direction="rtl" class="node-title">Google OAuth</text>
+    <text x="563" y="1284" text-anchor="start" direction="rtl" class="body">تسجيل دخول العميل والتحقق من البريد</text>
+    <text x="124" y="1318" class="code">google-login.php → google-callback.php</text>
+
+    <rect x="715" y="1220" width="490" height="118" rx="15" class="store-card"/>
+    <text x="1177" y="1255" text-anchor="start" direction="rtl" class="node-title">Gemini API · اختياري</text>
+    <text x="1177" y="1284" text-anchor="start" direction="rtl" class="body">ملخص المقارنة من حقائق قاعدة البيانات</text>
+    <text x="738" y="1318" class="code">CompareController</text>
+
+    <rect x="1329" y="1220" width="490" height="118" rx="15" class="store-card"/>
+    <text x="1791" y="1255" text-anchor="start" direction="rtl" class="node-title">OpenStreetMap / Nominatim</text>
+    <text x="1791" y="1284" text-anchor="start" direction="rtl" class="body">تحويل إحداثيات الموقع لعنوان بالتوصيل</text>
+    <text x="1352" y="1318" class="code">checkout.php · Browser fetch</text>
+    <text x="1810" y="1370" text-anchor="start" direction="rtl" class="small">الخطوط المتقطعة = تكامل خارجي أو اختياري · مخزون الصور وملفات CSS/JS تُقدَّم مع صفحات View</text>
+  </g>
+
+  <text x="76" y="1445" class="tiny">NEXORA · PHP MVC-style structure · Prepared queries via PDO · Customer/Admin sessions</text>
+</svg>
