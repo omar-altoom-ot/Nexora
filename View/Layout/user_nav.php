@@ -34,10 +34,10 @@ if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
       </a>
 
       <!-- <a href="#">PC Builder</a> -->
-	   <a class="<?= $currentPage === 'builder' ? 'active' : '' ?>" href="../Layout/routing.php?page=builder">PC Builder</a>
-      <a class="<?= $currentPage === 'compare' ? 'active' : '' ?>"
-         href="../Layout/routing.php?page=compare">
-        Compare
+      <a class="<?= $currentPage === 'builder' ? 'active' : '' ?>" href="../Layout/routing.php?page=builder">PC Builder</a>
+      <a class="<?= $currentPage === 'recommendation' ? 'active' : '' ?>"
+         href="../Layout/routing.php?page=recommendation">
+        Recommendations
       </a>
     </nav>
 

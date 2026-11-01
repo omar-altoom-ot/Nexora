@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 /Config/google-oauth.local.php
+/Config/gemini.local.php
 
 # Ignore uploaded product images
 /Assets/Images/products/*

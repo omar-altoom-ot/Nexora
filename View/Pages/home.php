@@ -78,7 +78,7 @@ $isLoggedInCustomer = isset($_SESSION['customer_id'])
           <p class="lead">
             Gaming PCs, components, laptops and peripherals — with an AI
             assistant, a smart PC Builder that checks compatibility, and
-            side-by-side comparison so you always buy the right hardware.
+            personalized component recommendations based on your current parts and budget.
           </p>
           <div class="hero-cta">
             <a href="../Layout/routing.php?page=products" class="btn btn-primary">Shop Now</a>
@@ -422,26 +422,24 @@ $isLoggedInCustomer = isset($_SESSION['customer_id'])
         <div class="grid grid-3" style="margin-top: 40px">
           <div class="card feat">
             <div class="feat-num">01</div>
-            <h3>AI Shopping Assistant</h3>
+            <h3>Smart Parts Recommendations</h3>
             <p>
-              Tell it your budget and games — get tailored recommendations and
-              clear technical explanations.
+              Tell us what hardware you own and your budget to find suitable parts from our catalog.
             </p>
+            <a class="feat-link" href="../Layout/routing.php?page=recommendation">Get recommendations →</a>
           </div>
           <div class="card feat">
             <div class="feat-num">02</div>
             <h3>Smart PC Builder</h3>
             <p>
-              Pick parts with live compatibility checks, price totals and
-              alternative suggestions.
+              Pick parts, track your total, and preview the build in 3D.
             </p>
           </div>
           <div class="card feat">
             <div class="feat-num">03</div>
-            <h3>Product Comparison</h3>
+            <h3>Customer Reviews</h3>
             <p>
-              Compare specs, price and performance side by side and choose with
-              confidence.
+              Read product feedback and ratings from other customers before you choose your next component.
             </p>
           </div>
         </div>

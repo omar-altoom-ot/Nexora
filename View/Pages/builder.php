@@ -1,10 +1,10 @@
 <?php
-require_once __DIR__ . '/../../Controllers/CompareController.php';
+require_once __DIR__ . '/../../Controllers/RecommendationController.php';
 $builderCategories = [];
 $builderProducts = [];
 $builderError = null;
 try {
-    $builderCatalog = new CompareController();
+    $builderCatalog = new RecommendationController();
     $builderCategories = $builderCatalog->categories();
     foreach ($builderCategories as $category) {
         foreach ($builderCatalog->products((int) $category['id']) as $product) {
