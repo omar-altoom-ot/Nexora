@@ -123,6 +123,12 @@ input[type="week"]::-webkit-calendar-picker-indicator {
 
 /* ---------- Navbar ---------- */
  /* .nav { */
+ .nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(6,4,14,.72); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
 .logo { font-family: var(--font-head); font-weight: 900; font-size: 1.5rem; letter-spacing: .18em; display: flex; align-items: center; gap: 10px; }
 .logo-mark {
   width: 34px; height: 34px; background: var(--grad);

@@ -249,7 +249,7 @@ $isLoggedInCustomer = isset($_SESSION['customer_id'])
 
 
 <!-- ================= CATEGORIES ================= -->
-<section class="section home-admin-categories">
+<section id="categories" class="section home-admin-categories">
   <div class="container">
 
     <section class="card panel home-categories-panel">
