@@ -30,8 +30,11 @@ require_once __DIR__ . '/../Includes/header.php';
       Your smarter tech experience starts here.
     </p>
 
-    <form method="POST" action="/Nexora/View/Layout/routing.php?page=register">
-      <input
+    <form id="register-form" method="POST" action="/Nexora/api/register.php"> 
+
+    <p id="register-api-message" role="status" aria-live="polite"></p>
+      
+    <input
         type="hidden"
         name="csrf_token"
         value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
@@ -133,3 +136,44 @@ require_once __DIR__ . '/../Includes/header.php';
 </nav>
 
 <?php require_once __DIR__ . '/../Includes/footer.php'; ?>
+
+<script>
+const registerForm = document.getElementById('register-form');
+const messageBox = document.getElementById('register-api-message');
+
+registerForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const submitButton = registerForm.querySelector('button[type="submit"]');
+
+    submitButton.disabled = true;
+    messageBox.textContent = 'Creating account...';
+    messageBox.style.color = '';
+
+    try {
+        const response = await fetch(registerForm.action, {
+            method: 'POST',
+            body: new FormData(registerForm),
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+
+        messageBox.textContent = result.message;
+        messageBox.style.color = result.success ? '#22c55e' : '#ef4444';
+
+        if (result.success) {
+            window.location.href = result.message === 'Account created. Please sign in.'
+                ? '/Nexora/View/Layout/routing.php?page=login'
+                : '/Nexora/View/Layout/routing.php?page=home';
+        }
+
+    } catch (error) {
+        messageBox.textContent = 'Unable to connect to the server.';
+        messageBox.style.color = '#ef4444';
+
+    } finally {
+        submitButton.disabled = false;
+    }
+});
+</script>
