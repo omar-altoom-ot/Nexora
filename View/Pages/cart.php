@@ -33,10 +33,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $action = $_POST['action'] ?? '';
         $success = false;
-        if ($action === 'clear') {
+        if ($action === 'add_build') {
+            $raw = $_POST['build_products'] ?? '';
+            $ids = is_string($raw) ? json_decode($raw, true) : null;
+            if (!is_array($ids) || count($ids) < 1 || count($ids) > 20 || array_values($ids) !== $ids) {
+                $error = 'Please select components in PC Builder first.';
+            } else {
+                $valid = true;
+                foreach ($ids as $id) {
+                    if (!is_int($id) || $id <= 0) { $valid = false; break; }
+                }
+                if (!$valid || count(array_unique($ids)) !== count($ids)) {
+                    $error = 'Invalid build components.';
+                } else {
+                    // Preflight availability before reserving stock for any component.
+                    $marks = implode(',', array_fill(0, count($ids), '?'));
+                    $available = $db->run_query(
+                        "SELECT id, stock_quantity FROM products WHERE id IN ($marks)", $ids
+                    )->fetchAll();
+                    $stockById = [];
+                    foreach ($available as $row) $stockById[(int) $row['id']] = (int) $row['stock_quantity'];
+                    foreach ($ids as $id) {
+                        if (($stockById[$id] ?? 0) < 1) { $valid = false; break; }
+                    }
+                    if (!$valid) {
+                        $error = 'A selected component is out of stock. Please update your build.';
+                    } else {
+                        $added = [];
+                        try {
+                            foreach ($ids as $id) {
+                                if (!$cartController->addItem($customerId, $id, 1)) {
+                                    throw new RuntimeException('A component became unavailable.');
+                                }
+                                $added[] = $id;
+                            }
+                            $_SESSION['cart_flash'] = count($added) . ' build components added to your cart.';
+                            header('Location: ' . $cartUrl);
+                            exit;
+                        } catch (Throwable $exception) {
+                            // Restore original quantities for components added during this request.
+                            foreach (array_reverse($added) as $id) {
+                                $quantity = (int) ($_SESSION['cart_items'][$id]['quantity'] ?? 0);
+                                if ($quantity <= 1) $cartController->removeItem($customerId, $id);
+                                else $cartController->updateQuantity($customerId, $id, $quantity - 1);
+                            }
+                            $error = 'Could not add the complete build. Please try again.';
+                            error_log('Builder add to cart failed: ' . $exception->getMessage());
+                        }
+                    }
+                }
+            }
+        } elseif ($action === 'clear') {
             $success = $cartController->clearCart($customerId);
             if ($success) $_SESSION['cart_flash'] = 'Cart cleared and reserved stock returned.';
-        } else {
+        } elseif ($action !== 'add_build') {
             $productId = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
             if ($productId === false || $productId === null || $productId <= 0) {
                 $error = 'Invalid product.';

@@ -21,3 +21,14 @@
 .builder-compat-item[data-state="incompatible"]{border-left-color:#ff6b75}
 .builder-compat-item strong,.builder-compat-item small{display:block;font-size:12px}
 .builder-compat-item small{color:#aabbd1;margin-top:5px;line-height:1.45}
+
+/* Compact, right-column cart button placed BELOW Compatibility Checker. */
+.builder-cart-action{margin-top:16px;padding:0;border:0}
+.builder-cart-action form{margin:0}
+.builder-summary .builder-cart-button{width:100%;min-height:43px;margin:0;padding:10px 13px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #44d5db70;border-radius:10px;background:linear-gradient(100deg,#7352ef,#1caed0);color:#fff;font:700 11px Orbitron,Arial,sans-serif;letter-spacing:.02em;text-align:center;cursor:pointer;transition:filter .2s,transform .2s}
+.builder-cart-button:hover:not(:disabled){filter:brightness(1.13);transform:translateY(-1px)}
+.builder-cart-button:disabled{opacity:.52;cursor:not-allowed}
+.builder-cart-icon{font-size:16px;line-height:1}
+.builder-cart-label{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.builder-cart-label small{font:400 10px Inter,Arial,sans-serif;color:#e1f9ff}
+.builder-summary #builder-reset{margin-top:11px}

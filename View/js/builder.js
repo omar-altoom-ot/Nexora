@@ -35,9 +35,36 @@ function label(t,c){const e=document.createElement(t);e.textContent=c;return e;}
 const getProduct=()=>products.find(p=>p.id===Number(product.value));
 [...new Set(products.map(p=>p.category).filter(x=>slotFor(x)))].forEach(x=>category.append(option(x,x)));
 category.addEventListener('change',()=>{product.replaceChildren(option('','Choose a product'));products.filter(p=>p.category===category.value).forEach(p=>product.append(option(p.id,`${p.name} — ${Number(p.price).toFixed(2)} JD`)));product.disabled=product.options.length===1;preview.textContent='Select a product to preview it.';installButton.disabled=true;});
-product.addEventListener('change',()=>{const p=getProduct();preview.replaceChildren();if(p){const type=slotFor(p.category);preview.append(label('div',type?.toUpperCase()||''),label('strong',p.name),label('span',`${Number(p.price).toFixed(2)} JD · ${p.stock} in stock`));}else preview.textContent='Select a product to preview it.';installButton.disabled=!p||p.stock<1||!viewer||busy;});
-function render(){summary.replaceChildren();if(!chosen.size)summary.append(label('p','No components selected yet.'));for(const [key,p] of chosen){const row=document.createElement('div');row.className='builder-item';const detail=document.createElement('div');detail.append(label('strong',p.name),label('small',`${key.toUpperCase()} · ${Number(p.price).toFixed(2)} JD`));const remove=label('button','×');remove.type='button';remove.setAttribute('aria-label','Remove '+p.name);remove.addEventListener('click',()=>{if(busy)return;chosen.delete(key);if(key!=='case')viewer?.remove(key);render();});row.append(detail,remove);summary.append(row);}total.textContent=[...chosen.values()].reduce((a,p)=>a+Number(p.price),0).toFixed(2)+' JD';updateCompatibility();}
-installButton.addEventListener('click',async()=>{if(busy||!viewer)return;const p=getProduct();if(!p||p.stock<1)return;const key=slotFor(p.category);if(!key)return;busy=true;installButton.disabled=true;partTitle.textContent=p.name;status.textContent='Installing '+p.name+'…';try{await viewer.install(key);chosen.set(key,p);render();status.textContent=p.name+' installed visually. Compatibility checks updated.';}catch(e){status.textContent='Unable to load this 3D part: '+e.message;}finally{busy=false;installButton.disabled=!getProduct()||getProduct().stock<1;}});
+product.addEventListener('change',()=>{const p=getProduct();preview.replaceChildren();if(p){const type=slotFor(p.category);preview.append(label('div',type?.toUpperCase()||''),label('strong',p.name),label('span',`${Number(p.price).toFixed(2)} JD · ${p.stock} in stock`));}else preview.textContent='Select a product to preview it.';installButton.disabled=!p||p.stock<1||busy;});
+function updateCartButton(){
+ const ids=[...chosen.values()].map(p=>Number(p.id)).filter(Number.isInteger);
+ const button=$('builder-add-cart'),field=$('builder-cart-products'),count=$('builder-cart-count');
+ if(!button||!field||!count)return;
+ field.value=JSON.stringify(ids);
+ button.disabled=busy||ids.length===0;
+ count.textContent=ids.length?`${ids.length} component${ids.length===1?'':'s'} selected`:'Choose components first';
+}
+$('builder-cart-form')?.addEventListener('submit',event=>{
+ updateCartButton();
+ if(!chosen.size||busy){event.preventDefault();return;}
+ $('builder-add-cart').disabled=true;
+});
+function render(){summary.replaceChildren();if(!chosen.size)summary.append(label('p','No components selected yet.'));for(const [key,p] of chosen){const row=document.createElement('div');row.className='builder-item';const detail=document.createElement('div');detail.append(label('strong',p.name),label('small',`${key.toUpperCase()} · ${Number(p.price).toFixed(2)} JD`));const remove=label('button','×');remove.type='button';remove.setAttribute('aria-label','Remove '+p.name);remove.addEventListener('click',()=>{if(busy)return;chosen.delete(key);if(key!=='case')viewer?.remove(key);render();});row.append(detail,remove);summary.append(row);}total.textContent=[...chosen.values()].reduce((a,p)=>a+Number(p.price),0).toFixed(2)+' JD';updateCompatibility();updateCartButton();}
+installButton.addEventListener('click',async()=>{
+ if(busy)return;
+ const p=getProduct();if(!p||p.stock<1)return;
+ const key=slotFor(p.category);if(!key)return;
+ // Save the real catalog selection regardless of 3D asset/network availability.
+ chosen.set(key,p);
+ render();
+ partTitle.textContent=p.name;
+ if(!viewer){status.textContent=p.name+' added to your build. 3D preview is unavailable.';return;}
+ busy=true;updateCartButton();installButton.disabled=true;
+ status.textContent='Installing '+p.name+'…';
+ try{await viewer.install(key);status.textContent=p.name+' installed visually. Compatibility checks updated.';}
+ catch(e){status.textContent=p.name+' added to your build; 3D preview unavailable: '+e.message;}
+ finally{busy=false;updateCartButton();installButton.disabled=!getProduct()||getProduct().stock<1;}
+});
 $('builder-reset').addEventListener('click',()=>{if(busy)return;chosen.clear();viewer?.reset();partTitle.textContent='Choose a component';status.textContent='Build reset.';render();});
 render();
 createBuilder3D($('builder-viewport'),msg=>{status.textContent=msg;}).then(v=>{viewer=v;status.textContent='3D case loaded. Rotate with your mouse and select a product.';product.dispatchEvent(new Event('change'));}).catch(e=>{status.textContent='3D viewer could not start: '+e.message;});

@@ -61,13 +61,25 @@ require __DIR__ . '/../Layout/user_nav.php';
       <h2>Your build</h2>
       <div id="builder-selected" class="builder-selected"><p class="muted">No components selected yet.</p></div>
       <div class="builder-total"><span>Estimated total</span><strong id="builder-total">0.00 JD</strong></div>
-      <button type="button" id="builder-reset" class="btn btn-ghost">Reset build</button>
       <section class="builder-compat" aria-label="Compatibility checker">
         <h3>Compatibility Checker</h3>
         <div id="builder-compat-status" class="builder-compat-status" role="status" aria-live="polite">Choose components to check compatibility.</div>
         <div id="builder-compat-checks" class="builder-compat-checks"></div>
         <p class="builder-disclaimer">Unknown means specifications are missing. Passing checks do not guarantee full system compatibility.</p>
       </section>
+      <section class="builder-cart-action" aria-label="Add selected build to shopping cart">
+        <form id="builder-cart-form" method="post" action="../Layout/routing.php?page=cart">
+          <input type="hidden" name="action" value="add_build">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['cart_csrf_token'] ?? ($_SESSION['cart_csrf_token'] = bin2hex(random_bytes(32))), ENT_QUOTES, 'UTF-8') ?>">
+          <input type="hidden" name="build_products" id="builder-cart-products" value="[]">
+          <button type="submit" id="builder-add-cart" class="builder-cart-button" disabled>
+            <span class="builder-cart-icon" aria-hidden="true">🛒</span>
+            <span class="builder-cart-label">Add Build to Cart <small id="builder-cart-count">Choose components first</small></span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </form>
+      </section>
+      <button type="button" id="builder-reset" class="btn btn-ghost">Reset build</button>
     </aside>
   </div>
 </main>
