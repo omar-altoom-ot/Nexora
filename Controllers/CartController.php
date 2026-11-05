@@ -43,10 +43,10 @@ class CartController
         return $cart->removeItem($customerId, $productId);
     }
 
-    public function clearCart(int $customerId): bool
+    public function clearCart(int $customerId, bool $releaseReservedStock = true): bool
     {
         $cart = new Cart($this->db);
 
-        return $cart->clearCart($customerId);
+        return $cart->clearCart($customerId, $releaseReservedStock);
     }
 }

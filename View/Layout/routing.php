@@ -86,14 +86,7 @@ if ($isProtectedAdminPage) {
     $isLoggedInCustomer = isset($_SESSION['customer_id']) && ($_SESSION['user_role'] ?? null) === 'customer';
 
     if (!$isLoggedInAdmin) {
-        if ($isLoggedInCustomer) {
-            // User is logged in, but they are a Customer, not an Admin -> 403 Forbidden
-            abort(403, "You are logged in as a Customer. You do not have permission to view the Admin Console.");
-        } else {
-            // Not logged in at all -> Redirect to Admin Login
-            header('Location: ../Layout/routing.php?page=admin-login');
-            exit;
-        }
+        abort(403, 'You do not have access to this page. The Admin Console is for authorized administrators only.');
     }
 }
 

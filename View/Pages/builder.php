@@ -1,4 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['cart_csrf_token'])) {
+    $_SESSION['cart_csrf_token'] = bin2hex(random_bytes(32));
+}
+
 require_once __DIR__ . '/../../Controllers/RecommendationController.php';
 $builderCategories = [];
 $builderProducts = [];
@@ -61,6 +68,14 @@ require __DIR__ . '/../Layout/user_nav.php';
       <h2>Your build</h2>
       <div id="builder-selected" class="builder-selected"><p class="muted">No components selected yet.</p></div>
       <div class="builder-total"><span>Estimated total</span><strong id="builder-total">0.00 JD</strong></div>
+
+      <form id="builder-to-cart-form" method="POST" action="../Layout/routing.php?page=cart">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['cart_csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="action" value="add_many">
+        <input type="hidden" name="product_ids" id="builder-to-cart-ids" value="">
+        <button type="submit" id="builder-to-cart" class="btn btn-primary full" disabled>Add build to cart</button>
+      </form>
+
       <button type="button" id="builder-reset" class="btn btn-ghost">Reset build</button>
       <section class="builder-compat" aria-label="Compatibility checker">
         <h3>Compatibility Checker</h3>
@@ -74,4 +89,38 @@ require __DIR__ . '/../Layout/user_nav.php';
 <script id="builder-products-json" type="application/json"><?= json_encode($builderProducts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module" src="../js/builder.js"></script>
+<script>
+// Fills the hidden "product_ids" field from the builder's selected items
+// just before the "Add build to cart" form submits.
+// Requires builder.js to expose window.builderSelectedProductIds() -> array of ints.
+(function () {
+  var form = document.getElementById('builder-to-cart-form');
+  var idsField = document.getElementById('builder-to-cart-ids');
+  var submitBtn = document.getElementById('builder-to-cart');
+
+  function getSelectedIds() {
+    if (typeof window.builderSelectedProductIds === 'function') {
+      return window.builderSelectedProductIds();
+    }
+    return [];
+  }
+
+  function refreshButtonState() {
+    var ids = getSelectedIds();
+    submitBtn.disabled = !ids || ids.length === 0;
+  }
+
+  document.addEventListener('builder:selection-changed', refreshButtonState);
+  refreshButtonState();
+
+  form.addEventListener('submit', function (event) {
+    var ids = getSelectedIds();
+    if (!ids || ids.length === 0) {
+      event.preventDefault();
+      return;
+    }
+    idsField.value = ids.join(',');
+  });
+})();
+</script>
 <?php require __DIR__ . '/../Includes/footer.php'; ?>

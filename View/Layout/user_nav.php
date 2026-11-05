@@ -21,6 +21,11 @@ if ($isLoggedInCustomer && empty($_SESSION['customer_logout_csrf_token'])) {
       <span class="logo-mark"></span>NEXORA
     </a>
 
+    <input class="nav-check" type="checkbox" id="nav-check" aria-label="Toggle navigation">
+    <label class="nav-toggle" for="nav-check" aria-label="Open navigation menu">
+      <span></span><span></span><span></span>
+    </label>
+
     <nav class="nav-links">
       <a class="<?= $currentPage === 'home' ? 'active' : '' ?>"
         href="../Layout/routing.php?page=home">

@@ -124,7 +124,7 @@ require_once __DIR__ . '/../Includes/header.php';
                         
                         <!-- 2. IF PENDING/CONFIRMED: Show "Cancel" if within 5 hours -->
                         <?php elseif ($orderController->canUserCancel($o)): ?>
-                            <button type="button" class="btn btn-ghost btn-sm" onclick="openActionModal('cancel', <?= $o->id ?>)" style="color: #fb7185; border-color: #fb7185;">Cancel Order</button>
+                            <!-- <button type="button" class="btn btn-ghost btn-sm" onclick="openActionModal('cancel', <?= $o->id ?>)" style="color: #fb7185; border-color: #fb7185;">Cancel Order</button> -->
                             
                             <form id="cancel-form-<?= $o->id ?>" method="POST" style="display:none;">
                                 <input type="hidden" name="cancel_order_id" value="<?= $o->id ?>">

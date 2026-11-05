@@ -66,16 +66,6 @@ require_once __DIR__ . '/../Includes/header.php';
         <b><?= count($customers) ?></b>
       </div>
 
-      <div class="kpi card">
-        <small>NEW THIS MONTH</small>
-        <b>—</b>
-      </div>
-
-      <div class="kpi card">
-        <small>RETURNING CUSTOMERS</small>
-        <b>—</b>
-      </div>
-
     </div>
 
     <section class="card panel">

@@ -36,6 +36,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'clear') {
             $success = $cartController->clearCart($customerId);
             if ($success) $_SESSION['cart_flash'] = 'Cart cleared and reserved stock returned.';
+        } elseif ($action === 'add_many') {
+            $rawIds = $_POST['product_ids'] ?? '';
+            if (!is_string($rawIds)) {
+                $error = 'Invalid build products.';
+            } else {
+                $productIds = array_values(array_unique(array_filter(
+                    array_map(
+                        static fn(string $value) => filter_var(trim($value), FILTER_VALIDATE_INT),
+                        explode(',', $rawIds)
+                    ),
+                    static fn($value): bool => $value !== false && $value > 0
+                )));
+
+                if (!$productIds) {
+                    $error = 'No build components to add.';
+                } else {
+                    $addedCount = 0;
+                    foreach ($productIds as $productId) {
+                        if ($cartController->addItem($customerId, (int) $productId, 1)) {
+                            $addedCount++;
+                        }
+                    }
+
+                    if ($addedCount > 0) {
+                        $_SESSION['cart_flash'] = $addedCount === count($productIds)
+                            ? 'Build components added to your cart.'
+                            : $addedCount . ' of ' . count($productIds) . ' build components added. Some were unavailable.';
+                        $success = true;
+                    } else {
+                        $error = 'Could not add your build to the cart. Check stock availability.';
+                    }
+                }
+            }
         } else {
             $productId = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
             if ($productId === false || $productId === null || $productId <= 0) {
