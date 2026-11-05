@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 7. Clear cart sessions
         unset($_SESSION['applied_coupon']);
         $cartController = new CartController(new Db());
-        $cartController->clearCart($customerId);
+        $cartController->clearCart($customerId, false);
 
         // 8. Return Success JSON
         echo json_encode([

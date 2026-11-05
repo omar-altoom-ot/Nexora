@@ -194,8 +194,8 @@ require_once __DIR__ . '/../Includes/header.php';
         <label class="field">
           <span>Type</span>
           <select class="input" name="discount_type">
-            <option value="percentage">Percentage (%)</option>
-            <option value="fixed">Fixed Amount (JD)</option>
+            <option value="percentage">%</option>
+            <option value="fixed">Amount (JD)</option>
           </select>
         </label>
         <label class="field">

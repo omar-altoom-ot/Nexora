@@ -61,13 +61,6 @@ require_once __DIR__ . '/../Includes/header.php';
           <b><?= $wishlistCount ?? '—' ?></b>
         </div>
 
-        <div class="stat-card card">
-          <small>REWARDS</small>
-          <b>
-            <?= $rewardPoints ?? '—' ?>
-            <small>XP</small>
-          </b>
-        </div>
 
       </div>
       <article class="card profile-card" id="settings">
